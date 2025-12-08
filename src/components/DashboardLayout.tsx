@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 interface DashboardLayoutProps {
   title: string;
-  bgColor: string;
+  bgColor?: string;
   children: ReactNode;
 }
 
