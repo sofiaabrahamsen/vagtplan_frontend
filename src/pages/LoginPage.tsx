@@ -1,13 +1,22 @@
 import {
-  Box, Button, Flex,
-  FormControl, FormLabel,
-  Heading, Input,
+  Box,
+  Button,
+  Flex,
+  FormControl,
+  FormLabel,
+  Heading,
+  Input,
+  VStack,
   useToast,
-  VStack
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginClient } from "../services/loginClient";
+import { jwtDecode } from "jwt-decode";
+
+interface TokenPayload {
+  role: string;
+}
 
 const LoginPage = () => {
   const toast = useToast();
@@ -32,8 +41,13 @@ const LoginPage = () => {
 
     try {
       setIsLoading(true);
+
       const token = await loginClient.signIn(username, password);
       localStorage.setItem("token", token);
+
+      // Decode JWT and get role
+      const decoded = jwtDecode<TokenPayload>(token);
+      const role = decoded.role?.toLowerCase();
 
       toast({
         title: "Sign in successful!",
@@ -41,10 +55,13 @@ const LoginPage = () => {
         duration: 2500,
       });
 
-      navigate("/dashboard");
+      // Redirect based on role
+      if (role === "admin") navigate("/dashboard-admin");
+      else if (role === "employee") navigate("/dashboard-employee");
+      else navigate("/"); // fallback
     } catch (error) {
       console.error("SIGN-IN ERROR:", error);
-      
+
       toast({
         title: "Sign in failed",
         description: "Invalid username or password.",
@@ -58,17 +75,11 @@ const LoginPage = () => {
 
   return (
     <Flex justify="center" align="center" height="100vh" bg="gray.100" px={4}>
-      <Box
-        p={10}
-        bg="gray.600"      // Dark background for visibility
-        shadow="lg"
-        rounded="md"
-        width="100%"
-        maxWidth="400px"
-      >
+      <Box p={10} bg="gray.600" shadow="lg" rounded="md" width="100%" maxWidth="400px">
         <Heading textAlign="center" mb={8} color="white">
           Sign in
         </Heading>
+
         <form onSubmit={handleLogin}>
           <VStack spacing={4}>
             <FormControl isRequired>
