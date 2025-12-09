@@ -1,30 +1,26 @@
-import { Box, Heading, Text, Button, VStack } from "@chakra-ui/react";
+import { Box, Button, Heading, Text, VStack } from "@chakra-ui/react";
+import type { Employee } from "../../entities/Employee";
 
-interface User {
-  userName: string;
-  employeeId: number;
-  email?: string;
-  phone?: string;
+interface Props {
+  user: Employee;
+  onEditClick?: () => void; // Dashboard will handle the modal
 }
 
-interface PersonalInfoCardProps {
-  user: User;
-  onEdit?: () => void;
-}
-
-const PersonalInfoCard = ({ user, onEdit }: PersonalInfoCardProps) => {
+const PersonalInfoCard = ({ user, onEditClick }: Props) => {
   return (
-    <Box p={5} shadow="md" borderWidth="1px" rounded="md" bg="gray.50">
-      <Heading size="md" mb={3}>My Info</Heading>
+    <Box p={5} shadow="md" borderWidth="1px" rounded="md" bg="blue.600">
+      <Heading size="md" mb={3}>About you</Heading>
+
       <VStack align="start" spacing={2}>
-        <Text><b>Username:</b> {user.userName}</Text>
-        {user.email && <Text><b>Email:</b> {user.email}</Text>}
-        {user.phone && <Text><b>Phone:</b> {user.phone}</Text>}
-        {onEdit && (
-          <Button colorScheme="blue" size="sm" onClick={onEdit}>
-            Edit Info
-          </Button>
-        )}
+        <Text><b>Name:</b> {user.firstName} {user.lastName}</Text>
+        <Text><b>Email:</b> {user.email}</Text>
+        <Text><b>Phone:</b> {user.phone}</Text>
+        {user.address && <Text><b>Address:</b> {user.address}</Text>}
+        <Text><b>Experience level:</b> {user.experienceLevel}</Text>
+
+        <Button colorScheme="blue" size="sm" onClick={onEditClick}>
+          Edit Info
+        </Button>
       </VStack>
     </Box>
   );

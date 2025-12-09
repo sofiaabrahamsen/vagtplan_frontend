@@ -1,36 +1,30 @@
-import { Table, Thead, Tbody, Tr, Th, Td, Box, Heading } from "@chakra-ui/react";
+import { Box, Heading, Table, Thead, Tbody, Tr, Th, Td } from "@chakra-ui/react";
+import type { Shift } from "../../entities/Shift";
 
-interface Shift {
-  date: string;
-  startTime: string;
-  endTime: string;
-  substitute?: string;
-}
-
-interface ShiftsTableProps {
+interface Props {
   shifts: Shift[];
 }
 
-const ShiftsTable = ({ shifts }: ShiftsTableProps) => {
+const ShiftsTable = ({ shifts }: Props) => {
   return (
-    <Box p={5} shadow="md" borderWidth="1px" rounded="md" bg="gray.50">
+    <Box p={5} shadow="md" borderWidth="1px" rounded="md" bg="blue.600">
       <Heading size="md" mb={3}>My Shifts</Heading>
-      <Table variant="simple">
+      <Table variant="simple" size="sm">
         <Thead>
           <Tr>
             <Th>Date</Th>
-            <Th>Start</Th>
-            <Th>End</Th>
+            <Th>Start Time</Th>
+            <Th>End Time</Th>
             <Th>Substitute</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {shifts.map((shift, idx) => (
-            <Tr key={idx}>
-              <Td>{shift.date}</Td>
-              <Td>{shift.startTime}</Td>
-              <Td>{shift.endTime}</Td>
-              <Td>{shift.substitute || "-"}</Td>
+          {shifts.map((shift) => (
+            <Tr key={shift.id}>
+              <Td>{new Date(shift.date).toLocaleDateString()}</Td>
+              <Td>{shift.startTime ?? "-"}</Td>
+              <Td>{shift.endTime ?? "-"}</Td>
+              <Td>{shift.substitute ?? "-"}</Td>
             </Tr>
           ))}
         </Tbody>

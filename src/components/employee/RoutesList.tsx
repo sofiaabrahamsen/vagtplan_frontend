@@ -1,23 +1,19 @@
-import { Box, Heading, List, ListItem } from "@chakra-ui/react";
+import { Box, Heading, ListItem, UnorderedList } from "@chakra-ui/react";
+import type { Route } from "../../entities/Route";
 
-interface Route {
-  id: number;
-  name: string;
-}
-
-interface RoutesListProps {
+interface Props {
   routes: Route[];
 }
 
-const RoutesList = ({ routes }: RoutesListProps) => {
+const RoutesList = ({ routes }: Props) => {
   return (
-    <Box p={5} shadow="md" borderWidth="1px" rounded="md" bg="gray.50">
+    <Box p={5} shadow="md" borderWidth="1px" rounded="md" bg="blue.600">
       <Heading size="md" mb={3}>My Routes</Heading>
-      <List spacing={2}>
-        {routes.map(route => (
-          <ListItem key={route.id}>Route: {route.name}</ListItem>
+      <UnorderedList>
+        {routes.map((route) => (
+          <ListItem key={route.id}>Route {route.routeNumber}</ListItem>
         ))}
-      </List>
+      </UnorderedList>
     </Box>
   );
 };

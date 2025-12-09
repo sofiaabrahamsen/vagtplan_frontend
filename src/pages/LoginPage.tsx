@@ -74,7 +74,10 @@ const LoginPage = () => {
   };
 
   return (
-    <Flex justify="center" align="center" height="100vh" bg="gray.100" px={4}>
+    <Flex justify="center" align="center" height="100vh" bg="gray.100" px={4} flexDirection="column">
+      <Heading textAlign="center" mb={4} color="gray.700" size="xl">
+        Go-card management system
+      </Heading>
       <Box p={10} bg="gray.600" shadow="lg" rounded="md" width="100%" maxWidth="400px">
         <Heading textAlign="center" mb={8} color="white">
           Sign in
