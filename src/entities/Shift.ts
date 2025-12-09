@@ -1,9 +1,9 @@
 export interface Shift {
-  id: number;
-  date: string;
-  startTime?: string;
-  endTime?: string;
-  substitute?: string;
+  shiftId: number;
+  dateOfShift: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  substitutedId: number;
+  routeId: number;
+  totalHours?: number | null;
 }
-
-

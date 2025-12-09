@@ -4,7 +4,6 @@ import type { Employee } from "../entities/Employee";
 import type { Route } from "../entities/Route";
 import type { MonthlyHoursRow } from "../entities/WorkHours";
 
-import { routeService } from "../services/routeService";
 import { workHoursService } from "../services/workHoursService";
 
 interface EmployeeDashboardData {
@@ -23,49 +22,92 @@ export const useEmployeeDashboard = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // ------------------------------
+    // Helper: Load last X months of hours
+    // ------------------------------
+    const fetchWorkHoursForLastMonths = async (
+      employeeId: number,
+      monthsBack = 3
+    ) => {
+      const results: MonthlyHoursRow[] = [];
+      const now = new Date();
+
+      for (let offset = 0; offset < monthsBack; offset++) {
+        const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1;
+
+        try {
+          const rows = await workHoursService.getAll({
+            params: { employeeId, month, year },
+          });
+
+          if (rows.length > 0) {
+            results.push(rows[0]); // backend returns one row for the month
+          }
+        } catch (err) {
+          console.warn(`Failed to load hours for ${month}/${year}`, err);
+        }
+      }
+
+      return results.reverse(); // oldest → newest for chart display
+    };
+
+    // ------------------------------
+    // Main data loader
+    // ------------------------------
     const fetchData = async () => {
       setLoading(true);
       setError(null);
 
       try {
-        // Get token from localStorage
         const token = localStorage.getItem("token");
         if (!token) throw new Error("No token found");
 
-        // Decode JWT to get userId
+        // Decode employee ID from JWT
         const decoded = jwtDecode<{ nameid: string }>(token);
         const userId = Number(decoded.nameid);
-
         if (!userId) throw new Error("Token does not contain userId");
 
-        // Use .env API URL
-        const apiUrl = import.meta.env['VITE_API_URL'];
+        const apiUrl = import.meta.env["VITE_API_URL"];
 
-        // Fetch employee
+        // Fetch the employee
         const employeeResponse = await fetch(`${apiUrl}/Employees/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!employeeResponse.ok) throw new Error("Failed to fetch employee");
+
+        if (!employeeResponse.ok)
+          throw new Error("Failed to fetch employee");
+
         const employeeData: Employee = await employeeResponse.json();
         setEmployee(employeeData);
 
         const employeeId = employeeData.employeeId;
 
-        // Fetch routes
-        const routeData = await routeService.getAll();
-        setRoutes(routeData);
+        // -----------------------------------------
+        // Fetch ONLY the employee's own routes
+        // -----------------------------------------
+        const routesResponse = await fetch(
+          `${apiUrl}/employee/get-employee-routes-by-id/${employeeId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
-        // Fetch work hours for current month/year
-        const currentMonth = new Date().getMonth() + 1;
-        const currentYear = new Date().getFullYear();
-        const hours = await workHoursService.getAll({
-          params: { employeeId, month: currentMonth, year: currentYear },
-        });
+        if (!routesResponse.ok)
+          throw new Error("Failed to fetch employee routes");
+
+        const employeeRoutes: Route[] = await routesResponse.json();
+        setRoutes(employeeRoutes);
+
+        // -----------------------------------------
+        // Fetch 3 months of work hours
+        // -----------------------------------------
+        const hours = await fetchWorkHoursForLastMonths(employeeId, 3);
         setWorkHours(hours);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
-        console.error("Error fetching employee dashboard data:", err);
+        console.error("Error fetching dashboard data:", err);
         setError(err.message || "Unknown error");
       } finally {
         setLoading(false);
@@ -75,5 +117,11 @@ export const useEmployeeDashboard = () => {
     fetchData();
   }, []);
 
-  return { employee, routes, workHours, loading, error } as EmployeeDashboardData;
+  return {
+    employee,
+    routes,
+    workHours,
+    loading,
+    error,
+  } as EmployeeDashboardData;
 };
