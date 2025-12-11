@@ -19,8 +19,8 @@ import {
   WiSnow,
   WiThunderstorm,
 } from "react-icons/wi";
-import { useUserLocation } from "../../hooks/employee/useUserLocation";
-import { useWeather, type WeatherResponse } from "../../hooks/employee/useWeather";
+import { useUserLocation } from "../../hooks/useUserLocation";
+import { useWeather, type WeatherResponse } from "../../hooks/useWeather";
 
 // Fallback: Copenhagen
 const DEFAULT_LAT = 55.6761;

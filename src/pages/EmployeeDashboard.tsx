@@ -23,9 +23,9 @@ import WorkHoursChart from "../components/dashboard/WorkHoursChart";
 
 
 import type { Employee } from "../entities/Employee";
-import { useEmployeeDashboard } from "../hooks/employee/useDashboardData";
-import { useEmployeeShifts } from "../hooks/employee/useShifts";
-import { useUpdateEmployee } from "../hooks/employee/useUpdateEmployee";
+import { useShifts } from "../hooks/useShifts";
+import { useEmployeeDashboard } from "../hooks/useDashboardData";
+import { useUpdateEmployee } from "../hooks/useUpdateEmployee";
 
 const EmployeeDashboard = () => {
   const {
@@ -43,7 +43,7 @@ const EmployeeDashboard = () => {
     clockMode,
     clockIn,
     clockOut,
-  } = useEmployeeShifts();
+  } = useShifts();
 
   const { updateEmployee } = useUpdateEmployee();
 

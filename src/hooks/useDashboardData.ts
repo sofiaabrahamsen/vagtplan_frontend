@@ -1,12 +1,12 @@
 import { jwtDecode } from "jwt-decode";
 import { useEffect, useState } from "react";
 
-import type { Employee } from "../../entities/Employee";
-import type { Route } from "../../entities/Route";
-import type { MonthlyHoursRow } from "../../entities/WorkHours";
+import type { Employee } from "../entities/Employee";
+import type { Route } from "../entities/Route";
+import type { MonthlyHoursRow } from "../entities/WorkHours";
 
-import { employeeService } from "../../services/employeeService";
-import { workHoursService } from "../../services/workHoursService";
+import { employeeService } from "../services/employeeService";
+import { workHoursService } from "../services/workHoursService";
 
 interface EmployeeDashboardData {
   employee: Employee | null;

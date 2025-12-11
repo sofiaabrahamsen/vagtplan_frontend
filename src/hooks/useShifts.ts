@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { Shift } from "../../entities/Shift";
+import type { Shift } from "../entities/Shift";
 
 // Helpers
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -40,7 +40,7 @@ const calcHours = (start?: string | null, end?: string | null) => {
 
 export type ClockMode = "in" | "out" | "unavailable";
 
-export const useEmployeeShifts = () => {
+export const useShifts = () => {
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
