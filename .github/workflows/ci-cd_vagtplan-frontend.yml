@@ -22,24 +22,25 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Test Job
 
-    defaults:
-      run:
-        working-directory: ./vagtplan_frontend
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Install dependencies
         run: npm ci
+        working-directory: vagtplan_frontend
 
       - name: Run ESLint
         run: npm run lint
+        working-directory: vagtplan_frontend
 
-      - name: Run tests
-        run: npm test
+      # optional if you have tests
+      # - name: Run tests
+      #   run: npm test
+      #   working-directory: vagtplan_frontend
 
       - name: Build Vite project
         run: npm run build
+        working-directory: vagtplan_frontend
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
@@ -47,5 +48,5 @@ jobs:
     name: Close Pull Request Job
 
     steps:
-      - name: PR Closed — no deployment required on Render
-        run: echo "Pull request closed. No cleanup needed for Render."
+      - name: PR closed – no deployment needed
+        run: echo "Pull request closed."
