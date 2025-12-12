@@ -1,8 +1,10 @@
+// src/services/bicycleService.ts
 import ApiClient from "./api-client";
 import type { Bicycle } from "../entities/Bicycle";
 
+// BicycleNumber is a number in DB, so use number here too
 export type BicyclePayload = {
-  bicycleNumber: string;
+  bicycleNumber: number;
   inOperate: boolean;
 };
 

@@ -1,5 +1,5 @@
 export interface Bicycle {
     bicycleId: number;
-    bicycleNumber: string;
+    bicycleNumber: number;
     inOperate: boolean;
 }

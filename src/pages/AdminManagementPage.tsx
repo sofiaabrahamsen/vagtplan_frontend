@@ -1,4 +1,3 @@
-// src/pages/AdminManagementPage.tsx
 import {
   Box,
   Heading,
@@ -10,6 +9,9 @@ import DashboardLayout, {
   type DashboardNavItem,
 } from "../components/DashboardLayout";
 import AdminEmployeesSection from "../components/admin/AdminEmployeesSection";
+import AdminBicyclesSection from "../components/admin/AdminBicyclesSection";
+import AdminRoutesSection from "../components/admin/AdminRoutesSection";
+import AdminShiftsSection from "../components/admin/AdminShiftsSection";  
 
 const AdminManagementPage = () => {
   const navItems: DashboardNavItem[] = [
@@ -20,9 +22,8 @@ const AdminManagementPage = () => {
     { label: "Accounts", targetId: "section-employees" },
     { label: "Bicycles", targetId: "section-bicycles" },
     { label: "Routes", targetId: "section-routes" },
-    { label: "Shifts (ListOfShift)", targetId: "section-shifts" },
+    { label: "Shifts", targetId: "section-shifts" },
     { label: "Shift plans", targetId: "section-shiftplans" },
-    { label: "Substitutes", targetId: "section-substitutes" },
     { label: "Work hours", targetId: "section-workhours" },
   ];
 
@@ -39,40 +40,26 @@ const AdminManagementPage = () => {
 
         {/* BICYCLES */}
         <Box id="section-bicycles">
-          <Heading size="md" mb={2}>
+          <Heading size="md" mb={3} color="gray.600">
             Bicycles
           </Heading>
-          <Alert status="info" variant="subtle">
-            <AlertIcon />
-            Bicycle management UI not implemented yet. We can wire this to
-            <code> /api/Bicycles </code> next.
-          </Alert>
+          <AdminBicyclesSection />
         </Box>
 
         {/* ROUTES */}
         <Box id="section-routes">
-          <Heading size="md" mb={2}>
+          <Heading size="md" mb={2} color="gray.600">
             Routes
           </Heading>
-          <Alert status="info" variant="subtle">
-            <AlertIcon />
-            Route management UI not implemented yet. We can use
-            <code> /api/Routes </code> for CRUD.
-          </Alert>
+          <AdminRoutesSection />
         </Box>
 
-        {/* SHIFTS (ListOfShift) */}
+        {/* SHIFTS */}
         <Box id="section-shifts">
-          <Heading size="md" mb={2}>
-            Shifts (ListOfShift)
+          <Heading size="md" mb={2} color="gray.600">
+            Shifts
           </Heading>
-          <Alert status="info" variant="subtle">
-            <AlertIcon />
-            Shift management UI not implemented yet. Your current
-            <code> ShiftController </code> supports creating and updating single
-            shifts – we can extend the backend with list endpoints and hook them
-            up here.
-          </Alert>
+          <AdminShiftsSection />
         </Box>
 
         {/* SHIFT PLANS */}
@@ -85,19 +72,6 @@ const AdminManagementPage = () => {
             Shift plan management UI not implemented yet. We can call
             <code> /api/shiftplans </code> and{" "}
             <code>/api/shiftplans/generate-6weeks</code> from here.
-          </Alert>
-        </Box>
-
-        {/* SUBSTITUTES */}
-        <Box id="section-substitutes">
-          <Heading size="md" mb={2}>
-            Substitutes
-          </Heading>
-          <Alert status="info" variant="subtle">
-            <AlertIcon />
-            Substitute management UI not implemented yet. Once your
-            <code>Substituteds</code> endpoints are ready, we&apos;ll hook them
-            up here.
           </Alert>
         </Box>
 

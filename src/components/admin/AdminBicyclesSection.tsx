@@ -1,3 +1,5 @@
+// src/components/admin/AdminBicyclesSection.tsx
+import React, { useMemo, useState } from "react";
 import {
   Alert,
   AlertIcon,
@@ -28,16 +30,17 @@ import {
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
+
 import type { Bicycle } from "../../services/bicycleService";
-import { useBicycles } from "../../hooks/admin/useBicycles";
 import type { BicyclePayload } from "../../services/bicycleService";
+import { useBicycles } from "../../hooks/admin/useBicycles";
 
 type Mode = "create" | "edit";
 
 type BicycleForm = {
   bicycleId?: number;
+  // 👇 Always string in the form, we convert to number on save
   bicycleNumber: string;
   inOperate: boolean;
 };
@@ -47,7 +50,7 @@ const emptyForm: BicycleForm = {
   inOperate: true,
 };
 
-const AdminBicyclesSection = () => {
+const AdminBicyclesSection: React.FC = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -67,10 +70,21 @@ const AdminBicyclesSection = () => {
 
   const isEdit = mode === "edit";
 
-  const isFormValid = useMemo(
-    () => form.bicycleNumber.trim().length > 0,
-    [form]
-  );
+  // -----------------------------
+  // Validation helpers
+  // -----------------------------
+  const isFormValid = useMemo(() => {
+    const raw = String(form.bicycleNumber ?? "").trim();
+    if (!raw) return false;
+    return !Number.isNaN(Number(raw));
+  }, [form.bicycleNumber]);
+
+  const currentNumberError = useMemo(() => {
+    const raw = String(form.bicycleNumber ?? "").trim();
+    if (!raw) return "Bicycle number is required.";
+    if (Number.isNaN(Number(raw))) return "Bicycle number must be a valid number.";
+    return "";
+  }, [form.bicycleNumber]);
 
   // -----------------------------
   // Modal helpers
@@ -85,7 +99,7 @@ const AdminBicyclesSection = () => {
     setMode("edit");
     setForm({
       bicycleId: bicycle.bicycleId,
-      bicycleNumber: bicycle.bicycleNumber,
+      bicycleNumber: String(bicycle.bicycleNumber ?? ""),
       inOperate: bicycle.inOperate,
     });
     onOpen();
@@ -107,8 +121,23 @@ const AdminBicyclesSection = () => {
 
     setSaving(true);
     try {
+      const raw = String(form.bicycleNumber ?? "").trim();
+      const bicycleNumber = Number(raw);
+
+      if (Number.isNaN(bicycleNumber)) {
+        toast({
+          title: "Invalid bicycle number",
+          description: "Please enter a valid number.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        setSaving(false);
+        return;
+      }
+
       const payload: BicyclePayload = {
-        bicycleNumber: form.bicycleNumber.trim(),
+        bicycleNumber,
         inOperate: form.inOperate,
       };
 
@@ -131,15 +160,38 @@ const AdminBicyclesSection = () => {
       }
 
       onClose();
-    } catch (err: any) {
-      toast({
-        title: "Save failed",
-        description: err?.message ?? "Unknown error",
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
-    } finally {
+  } catch (err: any) {
+    const status = err?.response?.status;
+    const data = err?.response?.data;
+
+    console.error("Save bicycle error", status, data);
+
+    // Try to pull a useful message from the backend if it exists
+    let description =
+      (data && (data.error || data.message)) ||
+      err?.message ||
+      "Unknown error";
+
+    // 🧠 Special-case: 500 on this endpoint is very often "duplicate bicycle number"
+    if (status === 500) {
+      description =
+        "The bicycle number you entered is not accepted. Often this means a bicycle with this number already exists. Please choose another number.";
+    }
+
+    // Also handle explicit conflict (if backend later returns 409)
+    if (status === 409) {
+      description =
+        "A bicycle with this number already exists. Please choose another number.";
+    }
+
+    toast({
+      title: "Save failed",
+      description,
+      status: "error",
+      duration: 4000,
+      isClosable: true,
+    });
+  } finally {
       setSaving(false);
     }
   };
@@ -183,6 +235,10 @@ const AdminBicyclesSection = () => {
       shadow="sm"
     >
       <HStack justify="space-between" mb={4}>
+        <Text fontWeight="semibold" color="gray.700">
+          Bicycles
+        </Text>
+
         <Button
           size="sm"
           leftIcon={<FiPlus />}
@@ -222,7 +278,9 @@ const AdminBicyclesSection = () => {
               <Tr>
                 <Th color="gray.700">Number</Th>
                 <Th color="gray.700">In operate</Th>
-                <Th color="gray.700" textAlign={"right"}>Actions</Th>
+                <Th color="gray.700" textAlign="right">
+                  Actions
+                </Th>
               </Tr>
             </Thead>
             <Tbody>
@@ -231,7 +289,7 @@ const AdminBicyclesSection = () => {
                   <Td color="gray.800">{b.bicycleNumber}</Td>
                   <Td color="gray.800">{b.inOperate ? "Yes" : "No"}</Td>
                   <Td>
-                    <HStack spacing={2} justify={"end"}>
+                    <HStack justify="flex-end" spacing={2}>
                       <IconButton
                         aria-label="Edit bicycle"
                         icon={<FiEdit2 />}
@@ -270,7 +328,7 @@ const AdminBicyclesSection = () => {
             <FormControl
               mb={4}
               isRequired
-              isInvalid={!form.bicycleNumber.trim()}
+              isInvalid={!!currentNumberError}
             >
               <FormLabel>Bicycle number</FormLabel>
               <Input
@@ -279,10 +337,8 @@ const AdminBicyclesSection = () => {
                 onChange={handleChange}
                 placeholder="e.g. 101, 202, etc."
               />
-              {!form.bicycleNumber.trim() && (
-                <FormErrorMessage>
-                  Bicycle number is required.
-                </FormErrorMessage>
+              {currentNumberError && (
+                <FormErrorMessage>{currentNumberError}</FormErrorMessage>
               )}
             </FormControl>
 

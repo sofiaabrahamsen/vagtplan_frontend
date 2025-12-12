@@ -362,7 +362,7 @@ const AdminEmployeesSection = () => {
         </ModalContent>
       </Modal>
 
-      {/* EDIT MODAL (reusing your existing EditPersonalInfoModal) */}
+      {/* EDIT MODAL */ }
       <EditPersonalInfoModal
         user={editingEmployee}
         isOpen={isEditOpen}
