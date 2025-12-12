@@ -1,0 +1,32 @@
+name: Client CI
+
+on:
+  push:
+    paths:
+      - "vagtplan_frontend/**"
+      - ".github/workflows/vagtplan-ci.yml"
+  pull_request:
+    paths:
+      - "vagtplan_frontend/**"
+      - ".github/workflows/vagtplan-ci.yml"
+  workflow_dispatch:
+
+jobs:
+  test-client:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./vagtplan_frontend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npm run lint
+        
+      - name: Run tests
+        run: npm test
