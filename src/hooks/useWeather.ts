@@ -1,32 +1,32 @@
 // src/hooks/useWeather.ts
 import { useEffect, useState } from "react";
 
-type DailyWeather = {
+interface DailyWeather {
   time: string[];
   temperature_2m_max: number[];
   temperature_2m_min: number[];
   precipitation_probability_max?: number[];
-};
+}
 
-type CurrentWeather = {
+interface CurrentWeather {
   temperature: number;
   windspeed: number;
   weathercode: number;
   is_day: number;
   time: string;
-};
+}
 
-type HourlyWeather = {
+interface HourlyWeather {
   time: string[];
   precipitation_probability?: number[];
   cloudcover?: number[];
-};
+}
 
-export type WeatherResponse = {
+export interface WeatherResponse {
   current_weather?: CurrentWeather;
   hourly?: HourlyWeather;
   daily: DailyWeather;
-};
+}
 
 interface UseWeatherOptions {
   lat: number;
@@ -62,15 +62,15 @@ export const useWeather = ({ lat, lon, days = 1 }: UseWeatherOptions) => {
 
         const json = (await res.json()) as WeatherResponse;
         setData(json);
-      } catch (err: any) {
-        if (err.name === "AbortError") return;
-        setError(err?.message ?? "Unknown error");
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError")
+        setError(err.message ?? "Unknown error");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWeather();
+    void fetchWeather();
     return () => controller.abort();
   }, [lat, lon, days]);
 

@@ -109,10 +109,16 @@ const AdminEmployeesSection = () => {
       });
 
       onClose();
-    } catch (err: any) {
-      toast({
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
+      toast({ 
         title: "Save failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -155,10 +161,16 @@ const AdminEmployeesSection = () => {
       });
 
       handleEditClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
       toast({
         title: "Update failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -180,10 +192,16 @@ const AdminEmployeesSection = () => {
         duration: 2500,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
       toast({
         title: "Delete failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -279,7 +297,7 @@ const AdminEmployeesSection = () => {
                         variant="outline"
                         colorScheme="red"
                         isLoading={deletingId === e.employeeId}
-                        onClick={() => handleDelete(e.employeeId)}
+                        onClick={() => void handleDelete(e.employeeId)}
                       />
                     </HStack>
                   </Td>
@@ -349,7 +367,7 @@ const AdminEmployeesSection = () => {
             <Button
               colorScheme="blue"
               mr={3}
-              onClick={handleCreateSave}
+              onClick={() => void handleCreateSave}
               isLoading={saving}
               isDisabled={!isFormValid}
             >
@@ -367,7 +385,7 @@ const AdminEmployeesSection = () => {
         user={editingEmployee}
         isOpen={isEditOpen}
         onClose={handleEditClose}
-        onSave={handleEditSave}
+        onSave={()=> void handleEditSave}
       />
     </Box>
   );

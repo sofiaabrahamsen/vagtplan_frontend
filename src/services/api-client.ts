@@ -2,6 +2,7 @@ import axios, { type AxiosRequestConfig } from "axios";
 
 // Create axios instance with environment API URL
 const axiosInstance = axios.create({
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/dot-notation
   baseURL: import.meta.env["VITE_API_URL"],
 });
 
@@ -48,7 +49,7 @@ class ApiClient<T> {
 
   // DELETE /endpoint/:id
   delete = (id: number) =>
-    axiosInstance.delete(`${this.endpoint}/${id}`).then((res) => res.data);
+    axiosInstance.delete<T>(`${this.endpoint}/${id}`).then((res) => res.data);
 }
 
 export default ApiClient;

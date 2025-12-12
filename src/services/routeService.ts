@@ -8,9 +8,9 @@ export interface Route {
 }
 
 // Payload for create/update
-export type RoutePayload = {
+export interface RoutePayload {
   routeNumber: number;
-};
+}
 
 class RouteService extends ApiClient<Route> {
   constructor() {

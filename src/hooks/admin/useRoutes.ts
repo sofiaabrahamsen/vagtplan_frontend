@@ -18,15 +18,19 @@ export const useRoutes = () => {
     try {
       const data = await routeService.getAllRoutes();
       setRoutes(data);
-    } catch (err: any) {
-      setError(err?.message ?? "Unknown error");
+    } catch (err: unknown) {
+       if (err instanceof Error) {
+      setError(err?.message );
+       } else {
+      setError("An unknown error occurred");
+       }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchRoutes();
+    void fetchRoutes();
   }, [fetchRoutes]);
 
   const createRoute = useCallback(async (payload: RoutePayload) => {

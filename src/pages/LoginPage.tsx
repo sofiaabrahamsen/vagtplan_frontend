@@ -83,7 +83,7 @@ const LoginPage = () => {
           Sign in
         </Heading>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={()=>handleLogin}>
           <VStack spacing={4}>
             <FormControl isRequired>
               <FormLabel color="white">Username</FormLabel>

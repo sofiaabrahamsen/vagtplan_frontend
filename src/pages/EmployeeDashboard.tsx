@@ -75,7 +75,7 @@ const EmployeeDashboard = () => {
         setEmployee(updatedEmployee);
         handleCloseModal();
       } else {
-        alert(result.error || "Failed to update employee");
+        alert(result.error ?? "Failed to update employee");
       }
     } catch (err) {
       console.error("Error updating employee:", err);
@@ -200,7 +200,7 @@ const EmployeeDashboard = () => {
           user={modalEmployee}
           isOpen={modalOpen}
           onClose={handleCloseModal}
-          onSave={handleSave}
+          onSave={()=>handleSave}
         />
       </VStack>
     </DashboardLayout>

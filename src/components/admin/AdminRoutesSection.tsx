@@ -36,10 +36,10 @@ import type { RoutePayload } from "../../services/routeService";
 
 type Mode = "create" | "edit";
 
-type RouteForm = {
+interface RouteForm {
   id?: number;
   routeNumber: string; // keep as string in form, convert to number in payload
-};
+}
 
 const emptyForm: RouteForm = {
   routeNumber: "",
@@ -122,10 +122,16 @@ const AdminRoutesSection = () => {
       }
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description;
+       if (err instanceof Error) {
+        description = err.message;
+       }else {
+        description = "Unknown error";
+       }
       toast({
         title: "Save failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -148,10 +154,17 @@ const AdminRoutesSection = () => {
         duration: 2500,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description;
+        if (err instanceof Error) {
+        description = err.message;
+       }
+      else {
+        description = "Unknown error";
+       }
       toast({
         title: "Delete failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -238,7 +251,7 @@ const AdminRoutesSection = () => {
                         variant="outline"
                         colorScheme="red"
                         isLoading={deletingId === r.id}
-                        onClick={() => handleDelete(r.id)}
+                        onClick={void handleDelete(r.id)}
                       />
                     </HStack>
                   </Td>
@@ -286,7 +299,7 @@ const AdminRoutesSection = () => {
             <Button
               colorScheme="blue"
               mr={3}
-              onClick={handleSave}
+              onClick={void handleSave}
               isLoading={saving}
               isDisabled={!isFormValid}
             >

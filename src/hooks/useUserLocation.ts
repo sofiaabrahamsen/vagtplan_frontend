@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 
-export type UserLocationState = {
+export interface UserLocaStionState {
   lat: number | null;
   lon: number | null;
   loading: boolean;
   error: string | null;
   permission: "unknown" | "granted" | "denied";
-};
+}
 
 export const useUserLocation = () => {
-  const [state, setState] = useState<UserLocationState>({
+  const [state, setState] = useState<UserLocaStionState>({
     lat: null,
     lon: null,
     loading: true,

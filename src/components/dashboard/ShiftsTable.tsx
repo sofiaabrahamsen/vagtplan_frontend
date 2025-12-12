@@ -168,7 +168,7 @@ const ShiftsTable = ({ shifts }: Props) => {
                       <Td>{formatTime(shift.startTime)}</Td>
                       <Td>{formatTime(shift.endTime)}</Td>
                       <Td isNumeric>
-                        {shift.totalHours != null ? shift.totalHours : "-"}
+                        {shift.totalHours ?? "-"}
                       </Td>
                       <Td>{shift.substitutedId ?? "-"}</Td>
                       <Td>

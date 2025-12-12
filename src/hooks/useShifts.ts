@@ -45,6 +45,7 @@ export const useShifts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/dot-notation
   const apiUrl = import.meta.env["VITE_API_URL"];
 
   const fetchShifts = useCallback(async () => {
@@ -55,34 +56,32 @@ export const useShifts = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token found");
 
-      const response = await fetch(`${apiUrl}/Employee/get-employee-shifts`, {
+      const response:Response = await fetch(`${apiUrl}/Employee/get-employee-shifts`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!response.ok) throw new Error("Failed to fetch employee shifts");
 
-      const data = await response.json();
+      const data:unknown = await response.json();
 
-      const formatted: Shift[] = (data ?? []).map((s: any) => ({
-        shiftId: s.shiftId,
-        dateOfShift: s.dateOfShift,
-        substitutedId: s.substitutedId,
-        routeId: s.routeId,
-        startTime: s.startTime ?? null,
-        endTime: s.endTime ?? null,
-        totalHours: s.totalHours ?? null,
-      }));
+      if(!Array.isArray(data)) throw new Error("Invalid data format received");
+
+      const formatted = data as Shift[];
 
       setShifts(formatted);
-    } catch (err: any) {
-      setError(err?.message ?? "Unknown error");
+    } catch (err: unknown) {
+       if (err instanceof Error) {
+      setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
   }, [apiUrl]);
 
   useEffect(() => {
-    fetchShifts();
+    void fetchShifts();
   }, [fetchShifts]);
 
   // -----------------------------

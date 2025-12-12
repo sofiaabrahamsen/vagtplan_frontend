@@ -1,23 +1,24 @@
 // src/services/employeeService.ts
 import ApiClient, { axiosInstance } from "./api-client";
 import type { Employee } from "../entities/Employee";
+import type { Route } from "./routeService";
 
-export type User = {
+export interface User {
   userId: number;
   username: string;
   role: string;
   employeeId?: number;
   employee?: Employee | null;
-};
+}
 
 // Payload used by create / update endpoints
-export type EmployeePayload = {
+export interface EmployeePayload {
   firstName: string;
   lastName: string;
   address: string;
   phone: string;
   email: string;
-};
+}
 
 class EmployeeService extends ApiClient<Employee> {
   constructor() {
@@ -28,18 +29,18 @@ class EmployeeService extends ApiClient<Employee> {
   // GET employee by ID (used by dashboard)
   // ---------------------------------------
   async getById(id: number): Promise<Employee> {
-    const response = await axiosInstance.get(`/Employees/${id}`);
-    return response.data;
+    const {data} = await axiosInstance.get<Employee>(`/Employees/${id}`);
+    return data;
   }
 
   // ---------------------------------------
   // GET employee routes by employeeId
   // ---------------------------------------
   async getRoutesByEmployeeId(employeeId: number) {
-    const response = await axiosInstance.get(
+    const {data} = await axiosInstance.get<Route[]>(
       `/Employee/get-employee-routes-by-id/${employeeId}`
     );
-    return response.data;
+    return data;
   }
 
   // ---------------------------------------

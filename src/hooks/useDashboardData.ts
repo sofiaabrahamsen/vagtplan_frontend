@@ -87,15 +87,18 @@ export const useEmployeeDashboard = () => {
         // ------------------------------------
         const hours = await fetchWorkHoursForLastMonths(employeeId, 3);
         setWorkHours(hours);
-      } catch (err: any) {
-        console.error("Error fetching dashboard data:", err);
-        setError(err.message || "Unknown error");
+      } catch (err: unknown) {
+         if (err instanceof Error) {
+        setError(err.message);
+         } else {
+        setError("An unknown error occurred");
+         }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
+    void fetchData();
   }, []);
 
   return {

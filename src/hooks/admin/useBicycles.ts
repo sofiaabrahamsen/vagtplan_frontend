@@ -13,15 +13,21 @@ export const useBicycles = () => {
     try {
       const data = await bicycleService.getAllBicycles();
       setBicycles(data);
-    } catch (err: any) {
-      setError(err?.message ?? "Unknown error");
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
+      setError(description);
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchBicycles();
+    void fetchBicycles();
   }, [fetchBicycles]);
 
   const createBicycle = useCallback(
