@@ -174,7 +174,7 @@ const DashboardLayout = ({
           <HStack spacing={2} flexWrap="wrap">
             {navItems.map((item) => {
               const isRouteItem = !!item.to;
-              const isScrollItem = !!item.targetId;
+              // TODO - Delte ? const isScrollItem = !!item.targetId;
 
               const isActive = isRouteItem
                 ? location.pathname === item.to

@@ -2,7 +2,6 @@
 import {
   Box,
   Heading,
-  Text,
   VStack,
   Alert,
   AlertIcon,

@@ -1,0 +1,52 @@
+name: CI/CD vagtplan-frontend
+
+on:
+  push:
+    branches:
+      ["main"]
+    paths:
+      - .
+      - ".github/workflows/ci-cd_vagtplan-frontend.yml"
+
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      ["main"]
+    paths:
+      - .
+      - ".github/workflows/ci-cd_vagtplan-frontend.yml"
+  
+
+jobs:
+  build_and_test:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: Build and Test Job
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: npm i
+        working-directory: .
+
+      #- name: Run ESLint
+      #  run: npm run lint
+      #  working-directory: .
+
+      #- name: Run tests
+       # run: npm test
+        #working-directory: .
+
+      - name: Build Vite project
+        run: npm run build
+        working-directory: .
+
+  close_pull_request_job:
+    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    name: Close Pull Request Job
+
+    steps:
+      - name: PR closed – no deployment needed
+        run: echo "Pull request closed."
