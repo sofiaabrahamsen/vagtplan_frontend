@@ -31,15 +31,14 @@ import {
 import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 import { useRoutes } from "../../hooks/admin/useRoutes";
-import type { Route } from "../../services/routeService";
-import type { RoutePayload } from "../../services/routeService";
+import type { Route, RoutePayload } from "../../services/routeService";
 
 type Mode = "create" | "edit";
 
-type RouteForm = {
+interface RouteForm {
   id?: number;
   routeNumber: string; // keep as string in form, convert to number in payload
-};
+}
 
 const emptyForm: RouteForm = {
   routeNumber: "",
@@ -122,10 +121,16 @@ const AdminRoutesSection = () => {
       }
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description;
+       if (err instanceof Error) {
+        description = err.message;
+       }else {
+        description = "Unknown error";
+       }
       toast({
         title: "Save failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -148,10 +153,17 @@ const AdminRoutesSection = () => {
         duration: 2500,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description;
+        if (err instanceof Error) {
+        description = err.message;
+       }
+      else {
+        description = "Unknown error";
+       }
       toast({
         title: "Delete failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -229,7 +241,7 @@ const AdminRoutesSection = () => {
                         size="sm"
                         variant="outline"
                         colorScheme="blue"
-                        onClick={() => openEdit(r)}
+                        onClick={()=> openEdit(r)}
                       />
                       <IconButton
                         aria-label="Delete route"
@@ -238,7 +250,7 @@ const AdminRoutesSection = () => {
                         variant="outline"
                         colorScheme="red"
                         isLoading={deletingId === r.id}
-                        onClick={() => handleDelete(r.id)}
+                        onClick={()=> void handleDelete(r.id)}
                       />
                     </HStack>
                   </Td>
@@ -286,6 +298,7 @@ const AdminRoutesSection = () => {
             <Button
               colorScheme="blue"
               mr={3}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={handleSave}
               isLoading={saving}
               isDisabled={!isFormValid}

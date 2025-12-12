@@ -91,8 +91,8 @@ const DashboardLayout = ({
   }, [roleOverride]);
 
   const roleLabel = useMemo(() => {
-    if (role === "admin") return "Admin side";
-    if (role === "employee") return "Employee side";
+    if (role === "admin") return "";
+    if (role === "employee") return "";
     return "Dashboard";
   }, [role]);
 

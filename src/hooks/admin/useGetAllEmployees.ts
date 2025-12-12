@@ -17,21 +17,25 @@ export const useGetAllEmployees = () => {
     try {
       const data = await employeeService.getAllEmployees();
       setEmployees(data);
-    } catch (err: any) {
-      setError(err?.message ?? "Unknown error");
+    } catch (err: unknown) {
+       if (err instanceof Error) {
+      setError(err?.message);
+    } else {
+      setError("An unknown error occurred");
+    }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchEmployees();
+    void fetchEmployees();
   }, [fetchEmployees]);
 
   const createEmployee = useCallback(
     async (payload: EmployeePayload) => {
       const created = await employeeService.createEmployee(payload);
-      setEmployees((prev) => [...prev, created]);
+      setEmployees((prev) => prev.concat({employeeId:prev.length+1, ...payload}));
       return created;
     },
     []

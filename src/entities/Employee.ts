@@ -6,4 +6,6 @@ export interface Employee {
   email: string;
   phone: string;
   experienceLevel: number;
+  password: string;
+  username: string;
 }

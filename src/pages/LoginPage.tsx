@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import {
   Box,
   Button,
@@ -9,16 +10,18 @@ import {
   VStack,
   useToast,
 } from "@chakra-ui/react";
+import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginClient } from "../services/loginClient";
-import { jwtDecode } from "jwt-decode";
 
 interface TokenPayload {
   role: string;
 }
 
 const LoginPage = () => {
+  
+
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -28,7 +31,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     if (!username || !password) {
       toast({
         title: "Missing fields",
@@ -48,7 +51,7 @@ const LoginPage = () => {
       // Decode JWT and get role
       const decoded = jwtDecode<TokenPayload>(token);
       const role = decoded.role?.toLowerCase();
-
+      
       toast({
         title: "Sign in successful!",
         status: "success",

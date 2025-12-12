@@ -23,8 +23,8 @@ import WorkHoursChart from "../components/dashboard/WorkHoursChart";
 
 
 import type { Employee } from "../entities/Employee";
-import { useShifts } from "../hooks/useShifts";
 import { useEmployeeDashboard } from "../hooks/useDashboardData";
+import { useShifts } from "../hooks/useShifts";
 import { useUpdateEmployee } from "../hooks/useUpdateEmployee";
 
 const EmployeeDashboard = () => {
@@ -71,11 +71,11 @@ const EmployeeDashboard = () => {
     try {
       const result = await updateEmployee(updatedEmployee);
 
-      if (result.success) {
+      if (result?.success) {
         setEmployee(updatedEmployee);
         handleCloseModal();
       } else {
-        alert(result.error || "Failed to update employee");
+        alert(result?.error ?? "Failed to update employee");
       }
     } catch (err) {
       console.error("Error updating employee:", err);
@@ -200,6 +200,7 @@ const EmployeeDashboard = () => {
           user={modalEmployee}
           isOpen={modalOpen}
           onClose={handleCloseModal}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onSave={handleSave}
         />
       </VStack>

@@ -3,10 +3,10 @@ import ApiClient from "./api-client";
 import type { Bicycle } from "../entities/Bicycle";
 
 // BicycleNumber is a number in DB, so use number here too
-export type BicyclePayload = {
+export interface BicyclePayload {
   bicycleNumber: number;
   inOperate: boolean;
-};
+}
 
 class BicycleService extends ApiClient<Bicycle> {
   constructor() {

@@ -84,7 +84,7 @@ const ClockInOutSection = ({
     }
 
     const update = () => {
-      const start = new Date(effectiveStartIso!).getTime();
+      const start = new Date(effectiveStartIso).getTime();
       const now = Date.now();
       setElapsedLabel(formatElapsed(now - start));
     };
@@ -132,10 +132,16 @@ const ClockInOutSection = ({
           isClosable: true,
         });
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
+      let description;
+       if (e instanceof Error) {
+        description = e.message;
+       } else {
+        description = "Unknown error";
+       }
       toast({
         title: "Action failed",
-        description: e?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -204,6 +210,7 @@ const ClockInOutSection = ({
       <Button
         width={{ base: "100%", md: "auto" }}
         colorScheme={mode === "out" ? "red" : "green"}
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onClick={handleClick}
         isLoading={busy || loading}
         isDisabled={mode === "unavailable" || !!error}

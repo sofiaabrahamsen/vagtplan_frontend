@@ -26,13 +26,14 @@ interface Props {
   onSave: (updated: Employee) => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type FormErrors = {
   firstName?: string;
   lastName?: string;
   email?: string;
   phone?: string;
   address?: string;
-};
+}
 
 const EditPersonalInfoModal = ({ user, isOpen, onClose, onSave }: Props) => {
   const [formData, setFormData] = useState<Employee | null>(user);

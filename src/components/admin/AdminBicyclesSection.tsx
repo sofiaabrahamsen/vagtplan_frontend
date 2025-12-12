@@ -38,19 +38,20 @@ import { useBicycles } from "../../hooks/admin/useBicycles";
 
 type Mode = "create" | "edit";
 
-type BicycleForm = {
+interface BicycleForm {
   bicycleId?: number;
   // 👇 Always string in the form, we convert to number on save
   bicycleNumber: string;
   inOperate: boolean;
-};
+}
 
 const emptyForm: BicycleForm = {
   bicycleNumber: "",
   inOperate: true,
 };
 
-const AdminBicyclesSection: React.FC = () => {
+function AdminBicyclesSection()
+{
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -160,38 +161,24 @@ const AdminBicyclesSection: React.FC = () => {
       }
 
       onClose();
-  } catch (err: any) {
-    const status = err?.response?.status;
-    const data = err?.response?.data;
+  } catch (err: unknown) {
+    let description: string;
 
-    console.error("Save bicycle error", status, data);
+    if(err instanceof Error) {
+    description = err.message;
 
-    // Try to pull a useful message from the backend if it exists
-    let description =
-      (data && (data.error || data.message)) ||
-      err?.message ||
-      "Unknown error";
-
-    // 🧠 Special-case: 500 on this endpoint is very often "duplicate bicycle number"
-    if (status === 500) {
-      description =
-        "The bicycle number you entered is not accepted. Often this means a bicycle with this number already exists. Please choose another number.";
-    }
-
-    // Also handle explicit conflict (if backend later returns 409)
-    if (status === 409) {
-      description =
-        "A bicycle with this number already exists. Please choose another number.";
-    }
-
-    toast({
+    
+    } else { 
+    description = "Unknown error";  
+  }
+  toast({
       title: "Save failed",
       description,
       status: "error",
       duration: 4000,
       isClosable: true,
     });
-  } finally {
+ } finally {
       setSaving(false);
     }
   };
@@ -209,10 +196,19 @@ const AdminBicyclesSection: React.FC = () => {
         duration: 2500,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description: string;
+      if(err instanceof Error)
+        { 
+          description = err.message
+        } 
+      else{
+        description = "Unknown error"
+      }
+
       toast({
         title: "Delete failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -301,7 +297,7 @@ const AdminBicyclesSection: React.FC = () => {
                         variant="outline"
                         colorScheme="red"
                         isLoading={deletingId === b.bicycleId}
-                        onClick={() => handleDelete(b.bicycleId)}
+                        onClick={() => void handleDelete(b.bicycleId)}
                       />
                     </HStack>
                   </Td>
@@ -351,6 +347,7 @@ const AdminBicyclesSection: React.FC = () => {
             <Button
               colorScheme="blue"
               mr={3}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={handleSave}
               isLoading={saving}
               isDisabled={!isFormValid}

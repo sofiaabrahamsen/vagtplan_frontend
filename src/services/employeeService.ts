@@ -1,23 +1,31 @@
 // src/services/employeeService.ts
-import ApiClient, { axiosInstance } from "./api-client";
+import axios from "axios";
 import type { Employee } from "../entities/Employee";
+import ApiClient, { axiosInstance } from "./api-client";
+import type { Route } from "./routeService";
 
-export type User = {
+// eslint-disable-next-line @typescript-eslint/dot-notation
+const VITE_AUTH_API_URL:string = import.meta.env["VITE_AUTH_API_URL"] as string;
+
+export interface User {
   userId: number;
   username: string;
   role: string;
   employeeId?: number;
   employee?: Employee | null;
-};
+}
 
 // Payload used by create / update endpoints
-export type EmployeePayload = {
+export interface EmployeePayload {
   firstName: string;
   lastName: string;
   address: string;
   phone: string;
   email: string;
-};
+  password: string;
+  username: string;
+  experienceLevel: number;
+}
 
 class EmployeeService extends ApiClient<Employee> {
   constructor() {
@@ -27,8 +35,9 @@ class EmployeeService extends ApiClient<Employee> {
   // ---------------------------------------
   // GET employee by ID (used by dashboard)
   // ---------------------------------------
-  async getById(id: number): Promise<Employee> {
+    async getById(id: number): Promise<Employee> {
     const response = await axiosInstance.get(`/Employees/${id}`);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return response.data;
   }
 
@@ -36,10 +45,10 @@ class EmployeeService extends ApiClient<Employee> {
   // GET employee routes by employeeId
   // ---------------------------------------
   async getRoutesByEmployeeId(employeeId: number) {
-    const response = await axiosInstance.get(
+    const {data} = await axiosInstance.get<Route[]>(
       `/Employee/get-employee-routes-by-id/${employeeId}`
     );
-    return response.data;
+    return data;
   }
 
   // ---------------------------------------
@@ -49,9 +58,20 @@ class EmployeeService extends ApiClient<Employee> {
     return this.getAll(); // GET /Employees
   }
 
-  createEmployee(payload: EmployeePayload) {
-    return this.create(payload); // POST /Employees
-  }
+  async createEmployee(payload: EmployeePayload): Promise<Employee> {
+    const response = await axios.post(VITE_AUTH_API_URL, {
+      firstName: payload.firstName,
+      lastName: payload.lastName,
+      address: payload.address,
+      phone: payload.phone,
+      email: payload.email,
+      password: payload.password,
+      username: payload.username,
+      experienceLevel: payload.experienceLevel
+    });
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return response.data; 
+  }; // POST /Employees
 
   updateEmployee(id: number, payload: EmployeePayload) {
     return this.update(id, payload); // PUT /Employees/:id
@@ -64,3 +84,4 @@ class EmployeeService extends ApiClient<Employee> {
 
 export const employeeService = new EmployeeService();
 export type { Employee };
+

@@ -13,15 +13,19 @@ export const useAdminShifts = () => {
     try {
       const data = await shiftService.getAllShifts();
       setShifts(data ?? []);
-    } catch (err: any) {
-      setError(err?.message ?? "Unknown error");
+    } catch (err: unknown) {
+       if (err instanceof Error) {
+      setError(err?.message );
+       } else {
+        setError("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchShifts();
+    void fetchShifts();
   }, [fetchShifts]);
 
   const createShift = useCallback(async (data: Partial<Shift>) => {
@@ -31,7 +35,7 @@ export const useAdminShifts = () => {
       setShifts((prev) => [...prev, created]);
     } else {
       // fallback: just refetch
-      fetchShifts();
+      void fetchShifts();
     }
   }, [fetchShifts]);
 

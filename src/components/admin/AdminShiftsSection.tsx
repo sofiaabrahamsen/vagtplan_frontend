@@ -40,14 +40,14 @@ import { useRoutes } from "../../hooks/admin/useRoutes";
 
 type Mode = "create" | "edit";
 
-type ShiftForm = {
+interface ShiftForm {
   shiftId?: number;
   dateOfShift: string; // "YYYY-MM-DD"
   employeeId: number | "";
   bicycleId: number | "";
   routeId: number | "";
   substitutedId: number | "" | null;
-};
+}
 
 const emptyForm: ShiftForm = {
   dateOfShift: "",
@@ -196,7 +196,7 @@ const AdminShiftsSection = () => {
       const substitutedId =
         form.substitutedId === "" || form.substitutedId == null
           ? (form.employeeId as number)
-          : (form.substitutedId as number);
+          : (form.substitutedId);
 
       const payload = {
         dateOfShift: dateIso,
@@ -225,10 +225,16 @@ const AdminShiftsSection = () => {
       }
 
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description;  
+       if (err instanceof Error) {
+        description = err.message;
+       } else{
+        description = "Unknown error";
+       }
       toast({
         title: "Save failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -251,10 +257,16 @@ const AdminShiftsSection = () => {
         duration: 2500,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description;
+       if (err instanceof Error) {
+        description = err.message;
+       } else{
+        description = "Unknown error";
+       }
       toast({
         title: "Delete failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -267,7 +279,7 @@ const AdminShiftsSection = () => {
   const anyLoading =
     loading || employeesLoading || bicyclesLoading || routesLoading;
 
-  const anyError = error || employeesError || bicyclesError || routesError;
+  const anyError = error ?? employeesError ?? bicyclesError ?? routesError;
 
   // -----------------------------
   // Render
@@ -374,7 +386,7 @@ const AdminShiftsSection = () => {
                         variant="ghost"
                         colorScheme="red"
                         isLoading={deletingId === s.shiftId}
-                        onClick={() => handleDelete(s.shiftId)}
+                        onClick={void handleDelete(s.shiftId)}
                       />
                     </HStack>
                   </Td>
@@ -510,7 +522,7 @@ const AdminShiftsSection = () => {
             <Button
               colorScheme="blue"
               mr={3}
-              onClick={handleSave}
+              onClick={() =>handleSave}
               isLoading={saving}
               isDisabled={!isFormValid}
             >

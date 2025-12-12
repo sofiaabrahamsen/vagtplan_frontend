@@ -74,11 +74,11 @@ const AdminDashboard = () => {
     try {
       const result = await updateEmployee(updatedEmployee);
 
-      if (result.success) {
+      if (result?.success) {
         setEmployee(updatedEmployee);
         handleCloseModal();
       } else {
-        alert(result.error || "Failed to update employee");
+        alert(result?.error ?? "Failed to update employee");
       }
     } catch (err) {
       console.error("Error updating employee:", err);
@@ -205,6 +205,7 @@ const AdminDashboard = () => {
           user={modalEmployee}
           isOpen={modalOpen}
           onClose={handleCloseModal}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onSave={handleSave}
         />
       </VStack>

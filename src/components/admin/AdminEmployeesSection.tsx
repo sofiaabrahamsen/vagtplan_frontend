@@ -1,39 +1,40 @@
 import {
-  Box,
-  Button,
-  IconButton,
-  Table,
-  Thead,
-  Tbody,
-  Tr,
-  Th,
-  Td,
-  HStack,
-  Text,
-  useToast,
-  Spinner,
   Alert,
   AlertIcon,
+  Box,
+  Button,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  HStack,
+  IconButton,
+  Input,
   Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
   ModalBody,
   ModalCloseButton,
+  ModalContent,
   ModalFooter,
-  FormControl,
-  FormLabel,
-  Input,
-  FormErrorMessage,
+  ModalHeader,
+  ModalOverlay,
+  Select,
+  Spinner,
+  Table,
+  Tbody,
+  Td,
+  Text,
+  Th,
+  Thead,
+  Tr,
   useDisclosure,
+  useToast
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
-import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 
 import type { Employee } from "../../entities/Employee";
-import EditPersonalInfoModal from "../EditPersonalInfoModal";
 import { useGetAllEmployees } from "../../hooks/admin/useGetAllEmployees";
 import type { EmployeePayload } from "../../services/employeeService";
+import EditPersonalInfoModal from "../EditPersonalInfoModal";
 
 const emptyForm: EmployeePayload = {
   firstName: "",
@@ -41,6 +42,9 @@ const emptyForm: EmployeePayload = {
   email: "",
   phone: "",
   address: "",
+  username: "",
+  password: "",
+  experienceLevel: 1
 };
 
 const AdminEmployeesSection = () => {
@@ -84,7 +88,10 @@ const AdminEmployeesSection = () => {
       form.firstName.trim() &&
       form.lastName.trim() &&
       form.email.trim() &&
-      form.phone.trim()
+      form.phone.trim() &&
+      form.address.trim() &&
+      form.password.trim() &&
+      form.username.trim()
     );
   }, [form]);
 
@@ -99,8 +106,11 @@ const AdminEmployeesSection = () => {
         email: form.email.trim(),
         phone: form.phone.trim(),
         address: form.address?.trim() ?? "",
+        experienceLevel: form.experienceLevel,
+        username: form.username.trim(),
+        password: form.password.trim()
       });
-
+      
       toast({
         title: "Employee created",
         status: "success",
@@ -109,10 +119,16 @@ const AdminEmployeesSection = () => {
       });
 
       onClose();
-    } catch (err: any) {
-      toast({
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
+      toast({ 
         title: "Save failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -145,6 +161,9 @@ const AdminEmployeesSection = () => {
         email: updated.email,
         phone: updated.phone,
         address: updated.address,
+        experienceLevel: updated.experienceLevel,
+        username: updated.username,
+        password: updated.password
       });
 
       toast({
@@ -155,10 +174,16 @@ const AdminEmployeesSection = () => {
       });
 
       handleEditClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
       toast({
         title: "Update failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -180,10 +205,16 @@ const AdminEmployeesSection = () => {
         duration: 2500,
         isClosable: true,
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
+      let description:string;
+      if(err instanceof Error){
+        description = err.message;
+      } else {
+        description = "Unknown error";
+      }
       toast({
         title: "Delete failed",
-        description: err?.message ?? "Unknown error",
+        description: description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -213,7 +244,7 @@ const AdminEmployeesSection = () => {
           colorScheme="blue"
           onClick={handleCreateOpen}
         >
-          New employee
+          New account
         </Button>
       </HStack>
 
@@ -256,12 +287,12 @@ const AdminEmployeesSection = () => {
             <Tbody>
               {employees.map((e) => (
                 <Tr key={e.employeeId}>
-                  <Td>{e.employeeId}</Td>
                   <Td>{e.firstName}</Td>
                   <Td>{e.lastName}</Td>
                   <Td>{e.email}</Td>
                   <Td>{e.phone}</Td>
                   <Td>{e.address}</Td>
+                  <Td>{e.experienceLevel}</Td>
                   <Td>
                     <HStack spacing={2}>
                       <IconButton
@@ -270,7 +301,7 @@ const AdminEmployeesSection = () => {
                         size="sm"
                         variant="outline"
                         colorScheme="blue"
-                        onClick={() => openEdit(e)}
+                        onClick={() => void openEdit(e)}
                       />
                       <IconButton
                         aria-label="Delete employee"
@@ -279,7 +310,7 @@ const AdminEmployeesSection = () => {
                         variant="outline"
                         colorScheme="red"
                         isLoading={deletingId === e.employeeId}
-                        onClick={() => handleDelete(e.employeeId)}
+                        onClick={() => void handleDelete(e.employeeId)}
                       />
                     </HStack>
                   </Td>
@@ -313,7 +344,7 @@ const AdminEmployeesSection = () => {
                 onChange={handleCreateChange}
               />
             </FormControl>
-            <FormControl mb={3} isRequired isInvalid={!form.email.trim()}>
+            <FormControl mb={3} isRequired>
               <FormLabel>Email</FormLabel>
               <Input
                 type="email"
@@ -325,7 +356,7 @@ const AdminEmployeesSection = () => {
                 <FormErrorMessage>Email is required.</FormErrorMessage>
               )}
             </FormControl>
-            <FormControl mb={3} isRequired isInvalid={!form.phone.trim()}>
+            <FormControl mb={3} isRequired>
               <FormLabel>Phone</FormLabel>
               <Input
                 name="phone"
@@ -344,11 +375,45 @@ const AdminEmployeesSection = () => {
                 onChange={handleCreateChange}
               />
             </FormControl>
+            <FormControl mb={3} isRequired>
+              <FormLabel>User name</FormLabel>
+              <Input
+                name="username"
+                value={form.username?.trim() ?? ""}
+                onChange={handleCreateChange}
+              />
+              {!form.username && (
+                <FormErrorMessage>username is required.</FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl mb={3} isRequired>
+              <FormLabel>Password</FormLabel>
+              <Input
+                type="password"
+                name="password"
+                value={form.password?.trim() ?? ""}
+                onChange={handleCreateChange}
+              />
+              {!form.password && (
+                <FormErrorMessage>password is required.</FormErrorMessage>
+              )}
+            </FormControl>
+            <FormControl mb={3} isInvalid={!form.experienceLevel}>
+              <FormLabel>Experience</FormLabel>
+              <Select placeholder={'Select experience'}>
+                <option value={form.experienceLevel = 1}>Beginner</option>
+                <option value={form.experienceLevel = 2}>Practiced</option>
+                <option value={form.experienceLevel = 3}>Experienced</option>
+                <option value={form.experienceLevel = 4}>Professional</option>
+                <option value={form.experienceLevel = 5}>Legendary</option> 
+              </Select>
+            </FormControl>
           </ModalBody>
           <ModalFooter>
             <Button
               colorScheme="blue"
               mr={3}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={handleCreateSave}
               isLoading={saving}
               isDisabled={!isFormValid}
@@ -367,6 +432,7 @@ const AdminEmployeesSection = () => {
         user={editingEmployee}
         isOpen={isEditOpen}
         onClose={handleEditClose}
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onSave={handleEditSave}
       />
     </Box>

@@ -15,13 +15,15 @@ export const useUpdateEmployee = () => {
         Address: employee.address
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-explicit-any
       await employeeClient.update(employee.employeeId, payload as any);
 
       return { success: true };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        return { success: false, error: err.message };
+      }
+      return undefined;
     }
   };
 
