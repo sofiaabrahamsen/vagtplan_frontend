@@ -32,11 +32,11 @@ import {
 import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 
-import type { Shift } from "../../services/shiftService";
 import { useAdminShifts } from "../../hooks/admin/useAdminShifts";
-import { useGetAllEmployees } from "../../hooks/admin/useGetAllEmployees";
 import { useBicycles } from "../../hooks/admin/useBicycles";
+import { useGetAllEmployees } from "../../hooks/admin/useGetAllEmployees";
 import { useRoutes } from "../../hooks/admin/useRoutes";
+import type { Shift } from "../../services/shiftService";
 
 type Mode = "create" | "edit";
 
@@ -386,7 +386,7 @@ const AdminShiftsSection = () => {
                         variant="ghost"
                         colorScheme="red"
                         isLoading={deletingId === s.shiftId}
-                        onClick={void handleDelete(s.shiftId)}
+                        onClick={() => void handleDelete(s.shiftId)}
                       />
                     </HStack>
                   </Td>
