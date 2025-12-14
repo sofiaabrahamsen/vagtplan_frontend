@@ -31,14 +31,17 @@ interface UseWeatherOptions {
   lat: number;
   lon: number;
   days?: number;
+  enabled?: boolean;
 }
 
-export const useWeather = ({ lat, lon, days = 1 }: UseWeatherOptions) => {
+export const useWeather = ({ lat, lon, days = 1, enabled = true }: UseWeatherOptions) => {
   const [data, setData] = useState<WeatherResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
+
     const controller = new AbortController();
 
     const fetchWeather = async () => {
@@ -62,8 +65,11 @@ export const useWeather = ({ lat, lon, days = 1 }: UseWeatherOptions) => {
         const json = (await res.json()) as WeatherResponse;
         setData(json);
       } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError")
-        setError(err.message ?? "Unknown error");
+
+        if (err instanceof Error && err.name === "AbortError") return;
+
+        if (err instanceof Error) setError(err.message);
+        else setError("Unknown error");
       } finally {
         setLoading(false);
       }
@@ -71,7 +77,7 @@ export const useWeather = ({ lat, lon, days = 1 }: UseWeatherOptions) => {
 
     void fetchWeather();
     return () => controller.abort();
-  }, [lat, lon, days]);
+  }, [lat, lon, days, enabled]);
 
   return { data, loading, error };
 };

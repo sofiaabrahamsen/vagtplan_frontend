@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export interface UserLocaStionState {
+export interface UserLocationState {
   lat: number | null;
   lon: number | null;
   loading: boolean;
@@ -9,7 +9,7 @@ export interface UserLocaStionState {
 }
 
 export const useUserLocation = () => {
-  const [state, setState] = useState<UserLocaStionState>({
+  const [state, setState] = useState<UserLocationState>({
     lat: null,
     lon: null,
     loading: true,

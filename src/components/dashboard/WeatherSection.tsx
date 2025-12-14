@@ -1,5 +1,8 @@
-import { Box, Heading, Text, HStack, VStack, Spinner, Alert, AlertIcon, } from "@chakra-ui/react";
-import { WiDaySunny, WiDayCloudy, WiCloudy, WiFog, WiRain, WiShowers, WiSnow, WiThunderstorm, } from "react-icons/wi";
+import {
+  Box, Heading, Text, HStack, VStack, Spinner, Alert, AlertIcon,
+} from "@chakra-ui/react";
+import { WiDaySunny, WiDayCloudy, WiCloudy, WiFog, WiRain, WiShowers, WiSnow, WiThunderstorm,
+} from "react-icons/wi";
 import { useUserLocation } from "../../hooks/useUserLocation";
 import { useWeather, type WeatherResponse } from "../../hooks/useWeather";
 
@@ -57,12 +60,8 @@ const pickTodaySnapshot = (data: WeatherResponse) => {
     }
   }
 
-  // Fallback: daily max rain prob for today
-  const dailyRainMax =
-    daily.precipitation_probability_max?.[0] ?? null;
-  if (rainChance == null && dailyRainMax != null) {
-    rainChance = dailyRainMax;
-  }
+  const dailyRainMax = daily.precipitation_probability_max?.[0] ?? null;
+  if (rainChance == null && dailyRainMax != null) rainChance = dailyRainMax;
 
   return {
     temperature: current.temperature,
@@ -75,32 +74,28 @@ const pickTodaySnapshot = (data: WeatherResponse) => {
 };
 
 const WeatherSection = () => {
-  // Get user location (or fallback)
-  const { lat, lon, loading: locLoading } = useUserLocation();
+  const { lat, lon, loading: locLoading, error: locError, permission } = useUserLocation();
 
-  const finalLat = lat ?? DEFAULT_LAT;
-  const finalLon = lon ?? DEFAULT_LON;
+  const useFallback = permission === "denied" || !!locError;
 
-  // Get weather for that location
-  const {
-    data,
-    loading: weatherLoading,
-    error: weatherError,
-  } = useWeather({ lat: finalLat, lon: finalLon, days: 1 });
+  const finalLat = useFallback ? DEFAULT_LAT : lat;
+  const finalLon = useFallback ? DEFAULT_LON : lon;
 
-  const loading = locLoading || weatherLoading;
+  const enabled = useFallback || (finalLat != null && finalLon != null);
+
+  const { data, loading: weatherLoading, error: weatherError } = useWeather({
+    lat: finalLat ?? DEFAULT_LAT,
+    lon: finalLon ?? DEFAULT_LON,
+    days: 1,
+    enabled,
+  });
+
+  const loading = (locLoading && !useFallback) || weatherLoading;
   const error = weatherError;
   const today = data ? pickTodaySnapshot(data) : null;
 
   return (
-    <Box
-      p={6}
-      bg="white"
-      borderWidth="1px"
-      borderColor="gray.200"
-      rounded="md"
-      shadow="sm"
-    >
+    <Box p={6} bg="white" borderWidth="1px" borderColor="gray.200" rounded="md" shadow="sm">
       <Heading size="md" mb={4} color="gray.700">
         Today&apos;s Weather
       </Heading>
@@ -138,8 +133,7 @@ const WeatherSection = () => {
           </HStack>
 
           <Text fontSize="sm" color="gray.700">
-            Chance of rain:{" "}
-            {today.rainChance != null ? `${today.rainChance}%` : "–"}
+            Chance of rain: {today.rainChance != null ? `${today.rainChance}%` : "–"}
           </Text>
 
           <Text fontSize="sm" color="gray.700">
