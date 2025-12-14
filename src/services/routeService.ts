@@ -1,8 +1,5 @@
 import ApiClient from "./api-client";
-export interface Route {
-  id: number;
-  routeNumber: number;
-}
+import type { Route } from "../entities/Route";
 
 // Payload for create/update
 export interface RoutePayload {
@@ -11,7 +8,7 @@ export interface RoutePayload {
 
 class RouteService extends ApiClient<Route> {
   constructor() {
-    super("Routes"); // -> /api/Routes
+    super("/Routes"); // -> /api/Routes
   }
 
   getAllRoutes() {
@@ -19,7 +16,6 @@ class RouteService extends ApiClient<Route> {
   }
 
   createRoute(payload: RoutePayload) {
-    // backend expects { routeNumber }
     return this.create(payload);
   }
 

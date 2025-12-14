@@ -10,7 +10,7 @@ export interface BicyclePayload {
 class BicycleService extends ApiClient<Bicycle> {
   constructor() {
     // base path → /api/Bicycles
-    super("Bicycles");
+    super("/Bicycles");
   }
 
   getAllBicycles() {
@@ -31,4 +31,3 @@ class BicycleService extends ApiClient<Bicycle> {
 }
 
 export const bicycleService = new BicycleService();
-export type { Bicycle };

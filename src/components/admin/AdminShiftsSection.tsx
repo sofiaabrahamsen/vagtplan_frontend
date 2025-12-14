@@ -1,20 +1,23 @@
-import { Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton, ModalContent,
-  ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast,
+import {
+  Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
+  ModalContent, ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Table, Tbody, Td, Text,
+  Th, Thead, Tr, useDisclosure, useToast,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 
+import type { Shift } from "../../entities/Shift";
 import { useAdminShifts } from "../../hooks/admin/useAdminShifts";
 import { useBicycles } from "../../hooks/admin/useBicycles";
 import { useGetAllEmployees } from "../../hooks/admin/useGetAllEmployees";
 import { useRoutes } from "../../hooks/admin/useRoutes";
-import type { Shift } from "../../entities/Shift";
+import type { AdminShiftPayload } from "../../services/adminShiftService";
 
 type Mode = "create" | "edit";
 
 interface ShiftForm {
   shiftId?: number;
-  dateOfShift: string; // "YYYY-MM-DD"
+  dateOfShift: string; // YYYY-MM-DD
   employeeId: number | "";
   bicycleId: number | "";
   routeId: number | "";
@@ -31,10 +34,13 @@ const emptyForm: ShiftForm = {
 
 const formatDate = (iso: string) => {
   if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString("da-DK");
+  const yyyyMmDd = iso.slice(0, 10); // "YYYY-MM-DD"
+  const [y, m, d] = yyyyMmDd.split("-").map(Number);
+  const dt = new Date(y, (m ?? 1) - 1, d ?? 1);
+  return dt.toLocaleDateString("da-DK");
 };
+
+const toBackendDateTime = (yyyyMmDd: string) => `${yyyyMmDd}T00:00:00`;
 
 const AdminShiftsSection = () => {
   const toast = useToast();
@@ -58,12 +64,8 @@ const AdminShiftsSection = () => {
 
   const isEdit = mode === "edit";
 
-  // Maps for nicer display
   const employeeMap = useMemo(
-    () =>
-      new Map(
-        employees.map((e) => [e.employeeId, `${e.firstName} ${e.lastName}`])
-      ),
+    () => new Map(employees.map((e) => [e.employeeId, `${e.firstName} ${e.lastName}`])),
     [employees]
   );
 
@@ -78,14 +80,11 @@ const AdminShiftsSection = () => {
   );
 
   const isFormValid =
-    form.dateOfShift &&
+    form.dateOfShift.trim().length > 0 &&
     form.employeeId !== "" &&
     form.bicycleId !== "" &&
     form.routeId !== "";
 
-  // -----------------------------
-  // Modal helpers
-  // -----------------------------
   const openCreate = () => {
     setMode("create");
     setForm(emptyForm);
@@ -93,8 +92,7 @@ const AdminShiftsSection = () => {
   };
 
   const openEdit = (shift: Shift) => {
-    const d = new Date(shift.dateOfShift);
-    const yyyyMmDd = !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : "";
+    const yyyyMmDd = shift.dateOfShift ? shift.dateOfShift.slice(0, 10) : "";
 
     setMode("edit");
     setForm({
@@ -112,18 +110,12 @@ const AdminShiftsSection = () => {
     const { name, value } = e.target;
 
     if (name === "employeeId" || name === "bicycleId" || name === "routeId") {
-      setForm((prev) => ({
-        ...prev,
-        [name]: value === "" ? "" : Number(value),
-      }));
+      setForm((prev) => ({ ...prev, [name]: value === "" ? "" : Number(value) }));
       return;
     }
 
     if (name === "substitutedId") {
-      setForm((prev) => ({
-        ...prev,
-        substitutedId: value === "" ? "" : Number(value),
-      }));
+      setForm((prev) => ({ ...prev, substitutedId: value === "" ? "" : Number(value) }));
       return;
     }
 
@@ -132,103 +124,64 @@ const AdminShiftsSection = () => {
     }
   };
 
-  // -----------------------------
-  // Save (create / update)
-  // -----------------------------
   const handleSave = async () => {
     if (!isFormValid) return;
 
     setSaving(true);
     try {
-      const dateIso = new Date(`${form.dateOfShift}T00:00:00`).toISOString();
+      const employeeId = form.employeeId as number;
+      const bicycleId = form.bicycleId as number;
+      const routeId = form.routeId as number;
 
       const substitutedId =
         form.substitutedId === "" || form.substitutedId == null
-          ? (form.employeeId as number)
+          ? employeeId
           : form.substitutedId;
 
-      const payload: Partial<Shift> = {
-        dateOfShift: dateIso,
-        employeeId: form.employeeId as number,
-        bicycleId: form.bicycleId as number,
-        routeId: form.routeId as number,
+      const payload: AdminShiftPayload = {
+        dateOfShift: toBackendDateTime(form.dateOfShift),
+        employeeId,
+        bicycleId,
+        routeId,
         substitutedId,
       };
 
       if (isEdit && form.shiftId != null) {
         await updateShift(form.shiftId, payload);
-        toast({
-          title: "Shift updated",
-          status: "success",
-          duration: 2500,
-          isClosable: true,
-        });
+        toast({ title: "Shift updated", status: "success", duration: 2500, isClosable: true });
       } else {
         await createShift(payload);
-        toast({
-          title: "Shift created",
-          status: "success",
-          duration: 2500,
-          isClosable: true,
-        });
+        toast({ title: "Shift created", status: "success", duration: 2500, isClosable: true });
       }
 
       onClose();
     } catch (err: unknown) {
       const description = err instanceof Error ? err.message : "Unknown error";
-      toast({
-        title: "Save failed",
-        description,
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
+      toast({ title: "Save failed", description, status: "error", duration: 4000, isClosable: true });
     } finally {
       setSaving(false);
     }
   };
 
-  // -----------------------------
-  // Delete
-  // -----------------------------
   const handleDelete = async (id: number) => {
     setDeletingId(id);
     try {
       await deleteShift(id);
-      toast({
-        title: "Shift deleted",
-        status: "success",
-        duration: 2500,
-        isClosable: true,
-      });
+      toast({ title: "Shift deleted", status: "success", duration: 2500, isClosable: true });
     } catch (err: unknown) {
       const description = err instanceof Error ? err.message : "Unknown error";
-      toast({
-        title: "Delete failed",
-        description,
-        status: "error",
-        duration: 4000,
-        isClosable: true,
-      });
+      toast({ title: "Delete failed", description, status: "error", duration: 4000, isClosable: true });
     } finally {
       setDeletingId(null);
     }
   };
 
   const anyLoading = loading || employeesLoading || bicyclesLoading || routesLoading;
-
   const anyError = error ?? employeesError ?? bicyclesError ?? routesError;
 
-  // -----------------------------
-  // Render
-  // -----------------------------
   return (
-    <Box p={4} bg="white" borderWidth="1px" borderColor="gray.200" rounded="md" shadow="sm">
+    <Box p={4} bg="white" borderWidth="1px" borderColor="gray.200" rounded="md" shadow="sm" color="black">
       <HStack justify="space-between" mb={4}>
-        <Text fontWeight="semibold" color="gray.700">
-          Shifts
-        </Text>
-
         <Button size="sm" leftIcon={<FiPlus />} colorScheme="blue" onClick={openCreate}>
           New shift
         </Button>
@@ -237,9 +190,7 @@ const AdminShiftsSection = () => {
       {anyLoading && (
         <HStack spacing={3}>
           <Spinner size="sm" />
-          <Text fontSize="sm" color="gray.600">
-            Loading shifts...
-          </Text>
+          <Text fontSize="sm" color="gray.600">Loading shifts...</Text>
         </HStack>
       )}
 
@@ -251,9 +202,7 @@ const AdminShiftsSection = () => {
       )}
 
       {!anyLoading && !anyError && shifts.length === 0 && (
-        <Text fontSize="sm" color="gray.600">
-          No shifts found.
-        </Text>
+        <Text fontSize="sm" color="gray.600">No shifts found.</Text>
       )}
 
       {!anyLoading && shifts.length > 0 && (
@@ -261,52 +210,43 @@ const AdminShiftsSection = () => {
           <Table size="sm" variant="simple">
             <Thead bg="gray.50">
               <Tr>
-                <Th color="gray.700">Date</Th>
-                <Th color="gray.700">Employee</Th>
-                <Th color="gray.700">Bicycle</Th>
-                <Th color="gray.700">Route</Th>
-                <Th color="gray.700">Substituted</Th>
-                <Th color="gray.700">Total hours</Th>
-                <Th color="gray.700" textAlign="right">
-                  Actions
-                </Th>
+                <Th>Date</Th>
+                <Th>Employee</Th>
+                <Th>Bicycle</Th>
+                <Th>Route</Th>
+                <Th>Substituted</Th>
+                <Th>Total hours</Th>
+                <Th textAlign="right">Actions</Th>
               </Tr>
             </Thead>
             <Tbody>
               {shifts.map((s) => (
                 <Tr key={s.shiftId}>
-                  <Td color="gray.800">{formatDate(s.dateOfShift)}</Td>
-                  <Td color="gray.800">
-                    {employeeMap.get(s.employeeId) ?? `#${s.employeeId}`}
-                  </Td>
-                  <Td color="gray.800">
-                    {bicycleMap.get(s.bicycleId) ?? `#${s.bicycleId}`}
-                  </Td>
-                  <Td color="gray.800">
-                    {routeMap.get(s.routeId) ?? `#${s.routeId}`}
-                  </Td>
-                  <Td color="gray.800">
+                  <Td>{formatDate(s.dateOfShift)}</Td>
+                  <Td>{employeeMap.get(s.employeeId) ?? `#${s.employeeId}`}</Td>
+                  <Td>{bicycleMap.get(s.bicycleId) ?? `#${s.bicycleId}`}</Td>
+                  <Td>{routeMap.get(s.routeId) ?? `#${s.routeId}`}</Td>
+                  <Td>
                     {s.substitutedId && s.substitutedId !== s.employeeId
                       ? employeeMap.get(s.substitutedId) ?? `#${s.substitutedId}`
                       : "Self"}
                   </Td>
-                  <Td color="gray.800">
-                    {s.totalHours != null ? `${s.totalHours.toFixed(2)} h` : "—"}
-                  </Td>
+                  <Td>{s.totalHours != null ? `${s.totalHours.toFixed(2)} h` : "—"}</Td>
                   <Td textAlign="right">
                     <HStack justify="flex-end" spacing={2}>
                       <IconButton
                         aria-label="Edit shift"
                         icon={<FiEdit2 />}
-                        size="xs"
-                        variant="ghost"
+                        size="sm"
+                        variant="outline"
+                        colorScheme="blue"
                         onClick={() => openEdit(s)}
                       />
                       <IconButton
                         aria-label="Delete shift"
                         icon={<FiTrash2 />}
-                        size="xs"
-                        variant="ghost"
+                        size="sm"
+                        variant="outline"
                         colorScheme="red"
                         isLoading={deletingId === s.shiftId}
                         onClick={() => void handleDelete(s.shiftId)}
@@ -320,7 +260,6 @@ const AdminShiftsSection = () => {
         </Box>
       )}
 
-      {/* Create / Edit Modal */}
       <Modal isOpen={isOpen} onClose={onClose} size="md">
         <ModalOverlay />
         <ModalContent>
@@ -347,9 +286,7 @@ const AdminShiftsSection = () => {
                   </option>
                 ))}
               </Select>
-              {form.employeeId === "" && (
-                <FormErrorMessage>Employee is required.</FormErrorMessage>
-              )}
+              {form.employeeId === "" && <FormErrorMessage>Employee is required.</FormErrorMessage>}
             </FormControl>
 
             <FormControl mb={3} isRequired isInvalid={form.bicycleId === ""}>
@@ -366,9 +303,7 @@ const AdminShiftsSection = () => {
                   </option>
                 ))}
               </Select>
-              {form.bicycleId === "" && (
-                <FormErrorMessage>Bicycle is required.</FormErrorMessage>
-              )}
+              {form.bicycleId === "" && <FormErrorMessage>Bicycle is required.</FormErrorMessage>}
             </FormControl>
 
             <FormControl mb={3} isRequired isInvalid={form.routeId === ""}>
@@ -385,9 +320,7 @@ const AdminShiftsSection = () => {
                   </option>
                 ))}
               </Select>
-              {form.routeId === "" && (
-                <FormErrorMessage>Route is required.</FormErrorMessage>
-              )}
+              {form.routeId === "" && <FormErrorMessage>Route is required.</FormErrorMessage>}
             </FormControl>
 
             <FormControl mb={3}>
@@ -395,11 +328,7 @@ const AdminShiftsSection = () => {
               <Select
                 name="substitutedId"
                 placeholder="Same as employee"
-                value={
-                  form.substitutedId === "" || form.substitutedId == null
-                    ? ""
-                    : String(form.substitutedId)
-                }
+                value={form.substitutedId === "" || form.substitutedId == null ? "" : String(form.substitutedId)}
                 onChange={handleChange}
               >
                 {employees.map((e) => (
@@ -415,16 +344,13 @@ const AdminShiftsSection = () => {
             <Button
               colorScheme="blue"
               mr={3}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={handleSave}
+              onClick={() => void handleSave()}
               isLoading={saving}
               isDisabled={!isFormValid}
             >
               {isEdit ? "Save changes" : "Create"}
             </Button>
-            <Button variant="ghost" onClick={onClose}>
-              Cancel
-            </Button>
+            <Button variant="ghost" onClick={onClose}>Cancel</Button>
           </ModalFooter>
         </ModalContent>
       </Modal>

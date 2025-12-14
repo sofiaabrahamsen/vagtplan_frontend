@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { routeService, type Route, type RoutePayload } from "../../services/routeService";
+import type { Route } from "../../entities/Route";
+import { routeService, type RoutePayload } from "../../services/routeService";
 
 const routesKey = ["routes"] as const;
 
@@ -11,32 +12,50 @@ export const useRoutes = () => {
     queryFn: () => routeService.getAllRoutes(),
   });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: RoutePayload) => routeService.createRoute(payload),
+  const createMutation = useMutation<void, Error, RoutePayload>({
+    mutationFn: async (payload) => {
+      await routeService.createRoute(payload);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: routesKey });
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: RoutePayload }) =>
-      routeService.updateRoute(id, payload),
+  const updateMutation = useMutation<void, Error, { id: number; payload: RoutePayload }>({
+    mutationFn: async ({ id, payload }) => {
+      await routeService.updateRoute(id, payload);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: routesKey });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => routeService.deleteRoute(id),
+  const deleteMutation = useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await routeService.deleteRoute(id);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: routesKey });
     },
   });
+
+  const loading =
+    !!isLoading ||
+    createMutation.isLoading ||
+    updateMutation.isLoading ||
+    deleteMutation.isLoading;
+
+  const errorMsg: string | null =
+    error?.message ??
+    createMutation.error?.message ??
+    updateMutation.error?.message ??
+    deleteMutation.error?.message ??
+    null;
 
   return {
     routes: data ?? [],
-    loading: isLoading,
-    error: error?.message ?? null,
+    loading,
+    error: errorMsg,
     refetch,
 
     createRoute: (payload: RoutePayload) => createMutation.mutateAsync(payload),

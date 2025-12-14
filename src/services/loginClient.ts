@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/react';
 const VITE_LOGIN_API_URL = import.meta.env["VITE_LOGIN_API_URL"] as string;
 
 export const loginClient = {
- 
+
   async signIn(username: string, password: string): Promise<string> {
     try{
       const response = await axios.post(VITE_LOGIN_API_URL, {
