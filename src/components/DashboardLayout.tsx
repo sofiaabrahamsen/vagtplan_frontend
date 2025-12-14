@@ -1,8 +1,9 @@
 import { Box, Button, Flex, Heading, HStack, Text } from "@chakra-ui/react";
+import { jwtDecode } from "jwt-decode";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Role = "admin" | "employee" | "unknown";
 
@@ -128,7 +129,10 @@ const DashboardLayout = ({
     return () => observer.disconnect();
   }, [navItems, firstSectionId]);
 
+  
+  const queryClient = useQueryClient();
   const handleLogout = () => {
+    queryClient.clear();
     localStorage.removeItem("token");
     navigate("/", { replace: true });
   };
