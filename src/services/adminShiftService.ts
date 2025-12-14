@@ -1,7 +1,7 @@
 import ApiClient from "./api-client";
 import type { Shift } from "../entities/Shift";
 
-const shiftClient = new ApiClient<Shift>("/Shift"); // change to "/Shifts" if your backend uses plural
+const shiftClient = new ApiClient<Shift>("/Shift");
 
 export const adminShiftService = {
     getAllShifts: () => shiftClient.getAll(),

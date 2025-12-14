@@ -1,14 +1,4 @@
-import {
-  Badge,
-  Box,
-  Button,
-  Divider,
-  Heading,
-  HStack,
-  Text,
-  useToast,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Button, Divider, Heading, HStack, Text, useToast, VStack,} from "@chakra-ui/react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClockMode } from "../../hooks/useShifts";
 
@@ -75,7 +65,7 @@ const ClockInOutSection = ({
     }
 
     // If we're active but have no stored start time,
-    // set a fallback start time NOW (best effort UX)
+    // set a fallback start time NOW
     let effectiveStartIso = startIso;
     if (!effectiveStartIso) {
       effectiveStartIso = new Date().toISOString();
@@ -187,7 +177,7 @@ const ClockInOutSection = ({
             : "No shift available for clocking in today."}
         </Text>
 
-        {/* ✅ Live timer when active */}
+        {/* Live timer when active */}
         {mode === "out" && (
           <Box
             px={3}

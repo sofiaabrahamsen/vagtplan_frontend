@@ -1,10 +1,10 @@
+import { jwtDecode } from "jwt-decode";
 import type { JSX } from "react";
 import { Navigate } from "react-router-dom";
-import { jwtDecode } from "jwt-decode";
 
 interface Props {
   children: JSX.Element;
-  roles?: string[]; // allowed roles, lowercase
+  roles?: string[];
 }
 
 interface TokenPayload {

@@ -1,7 +1,4 @@
-// src/services/routeService.ts
 import ApiClient from "./api-client";
-
-// Matches RouteDto from backend: { id, routeNumber }
 export interface Route {
   id: number;
   routeNumber: number;

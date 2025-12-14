@@ -7,7 +7,7 @@ const VITE_LOGIN_API_URL = import.meta.env["VITE_LOGIN_API_URL"] as string;
 export const loginClient = {
  
   async signIn(username: string, password: string): Promise<string> {
-     try{
+    try{
       const response = await axios.post(VITE_LOGIN_API_URL, {
       username,
       password,
@@ -18,7 +18,7 @@ export const loginClient = {
     // // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       Sentry.captureException(error);
       throw error;
-    } 
+    }
     
-  }  
+  }
 };

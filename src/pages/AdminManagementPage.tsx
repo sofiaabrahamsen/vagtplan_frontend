@@ -1,17 +1,9 @@
-import {
-  Box,
-  Heading,
-  VStack,
-  Alert,
-  AlertIcon,
-} from "@chakra-ui/react";
-import DashboardLayout, {
-  type DashboardNavItem,
-} from "../components/DashboardLayout";
+import { Box, Heading, VStack, Alert, AlertIcon, } from "@chakra-ui/react";
+import DashboardLayout, { type DashboardNavItem, } from "../components/DashboardLayout";
 import AdminEmployeesSection from "../components/admin/AdminEmployeesSection";
 import AdminBicyclesSection from "../components/admin/AdminBicyclesSection";
 import AdminRoutesSection from "../components/admin/AdminRoutesSection";
-import AdminShiftsSection from "../components/admin/AdminShiftsSection";  
+import AdminShiftsSection from "../components/admin/AdminShiftsSection";
 
 const AdminManagementPage = () => {
   const navItems: DashboardNavItem[] = [

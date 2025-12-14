@@ -1,21 +1,5 @@
-import {
-  Button,
-  Divider,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  SimpleGrid,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
+import { Button, Divider, FormControl, FormErrorMessage, FormLabel, Input, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter,
+  ModalHeader, ModalOverlay, SimpleGrid, Text, VStack, } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import type { Employee } from "../entities/Employee";
 
@@ -26,8 +10,7 @@ interface Props {
   onSave: (updated: Employee) => void;
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type FormErrors = {
+interface FormErrors {
   firstName?: string;
   lastName?: string;
   email?: string;

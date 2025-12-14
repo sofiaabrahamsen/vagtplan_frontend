@@ -1,32 +1,5 @@
-// src/components/admin/AdminRoutesSection.tsx
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  IconButton,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Spinner,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
-  useToast,
+import { Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
+  ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
@@ -37,7 +10,7 @@ type Mode = "create" | "edit";
 
 interface RouteForm {
   id?: number;
-  routeNumber: string; // keep as string in form, convert to number in payload
+  routeNumber: string;
 }
 
 const emptyForm: RouteForm = {

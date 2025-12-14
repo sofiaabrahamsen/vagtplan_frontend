@@ -1,18 +1,4 @@
-import {
-  Badge,
-  Box,
-  Heading,
-  HStack,
-  Select,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  VStack,
-} from "@chakra-ui/react";
+import { Badge, Box, Heading, HStack, Select, Table, Tbody, Td, Text, Th, Thead, Tr, VStack, } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import type { Shift } from "../../entities/Shift";
 

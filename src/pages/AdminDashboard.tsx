@@ -1,18 +1,7 @@
-// src/pages/AdminDashboard.tsx
-import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  Spinner,
-  VStack,
-} from "@chakra-ui/react";
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Spinner, VStack, } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 
-import DashboardLayout, {
-  type DashboardNavItem,
-} from "../components/DashboardLayout";
+import DashboardLayout, { type DashboardNavItem, } from "../components/DashboardLayout";
 
 import EditPersonalInfoModal from "../components/EditPersonalInfoModal";
 
@@ -93,7 +82,6 @@ const AdminDashboard = () => {
   );
   const hasShifts = useMemo(() => shifts && shifts.length > 0, [shifts]);
 
-  // 🔹 Nav sections INCLUDING Management
   const navItems: DashboardNavItem[] = [
     { label: "Management", to: "/admin/management" },
     { label: "Profile", targetId: "section-profile" },

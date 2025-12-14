@@ -1,4 +1,3 @@
-// src/hooks/useWeather.ts
 import { useEffect, useState } from "react";
 
 interface DailyWeather {

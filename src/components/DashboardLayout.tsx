@@ -1,4 +1,3 @@
-// src/components/DashboardLayout.tsx
 import { Box, Button, Flex, Heading, HStack, Text } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -9,13 +8,9 @@ type Role = "admin" | "employee" | "unknown";
 
 export interface DashboardNavItem {
   label: string;
-  /**
-   * If set, clicking scrolls to this element id on the page.
-   */
+  // If set, clicking scrolls to this element id on the page.
   targetId?: string;
-  /**
-   * If set, clicking navigates to this route using react-router.
-   */
+  // If set, clicking navigates to this route using react-router.
   to?: string;
 }
 
@@ -30,13 +25,13 @@ interface DashboardLayoutProps {
 const DASHBOARD_THEME = {
   appName: "Go-card management system",
   pageBg: "gray.100",
-  headerBg: "gray.600", // matches LoginPage vibe
+  headerBg: "gray.600",
   headerText: "white",
   subText: "whiteAlpha.800",
   contentPadding: 6,
 };
 
-// Centralized nav button styling (change once → updates everywhere)
+// Centralized nav button styling
 const NAV_BUTTON_BASE = {
   size: "sm" as const,
   variant: "solid" as const,
@@ -172,34 +167,28 @@ const DashboardLayout = ({
         {/* Optional in-page navigation / route navigation */}
         {navItems.length > 0 && (
           <HStack spacing={2} flexWrap="wrap">
-            {navItems.map((item) => {
-              const isRouteItem = !!item.to;
-              // TODO - Delte ? const isScrollItem = !!item.targetId;
+        {navItems.map((item) => {
+          const isActive = item.to
+            ? location.pathname === item.to
+            : item.targetId === activeSectionId;
 
-              const isActive = isRouteItem
-                ? location.pathname === item.to
-                : item.targetId === activeSectionId;
+          const onClick = () => {
+            if (item.to) navigate(item.to);
+            else if (item.targetId) handleScrollTo(item.targetId);
+          };
 
-              const onClick = () => {
-                if (item.to) {
-                  navigate(item.to);
-                } else if (item.targetId) {
-                  handleScrollTo(item.targetId);
-                }
-              };
-
-              return (
-                <Button
-                  key={item.targetId ?? item.label}
-                  {...NAV_BUTTON_BASE}
-                  {...(isActive ? NAV_BUTTON_ACTIVE : {})}
-                  onClick={onClick}
-                  aria-current={isActive ? "true" : undefined}
-                >
-                  {item.label}
-                </Button>
-              );
-            })}
+          return (
+            <Button
+              key={item.to ?? item.targetId ?? item.label}
+              {...NAV_BUTTON_BASE}
+              {...(isActive ? NAV_BUTTON_ACTIVE : {})}
+              onClick={onClick}
+              aria-current={isActive ? "true" : undefined}
+            >
+              {item.label}
+            </Button>
+          );
+        })}
           </HStack>
         )}
 

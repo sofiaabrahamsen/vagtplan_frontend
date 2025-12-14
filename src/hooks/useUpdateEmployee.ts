@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Employee } from "../entities/Employee";
 import ApiClient from "../services/api-client";
 
-// Backend expects PascalCase DTO (not Employee)
 interface UpdateEmployeeDto {
   FirstName: string;
   LastName: string;

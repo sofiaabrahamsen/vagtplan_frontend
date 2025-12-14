@@ -1,4 +1,3 @@
-// src/services/bicycleService.ts
 import ApiClient from "./api-client";
 import type { Bicycle } from "../entities/Bicycle";
 

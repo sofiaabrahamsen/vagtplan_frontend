@@ -1,24 +1,5 @@
-// src/components/employee/WeatherSection.tsx
-import {
-  Box,
-  Heading,
-  Text,
-  HStack,
-  VStack,
-  Spinner,
-  Alert,
-  AlertIcon,
-} from "@chakra-ui/react";
-import {
-  WiDaySunny,
-  WiDayCloudy,
-  WiCloudy,
-  WiFog,
-  WiRain,
-  WiShowers,
-  WiSnow,
-  WiThunderstorm,
-} from "react-icons/wi";
+import { Box, Heading, Text, HStack, VStack, Spinner, Alert, AlertIcon, } from "@chakra-ui/react";
+import { WiDaySunny, WiDayCloudy, WiCloudy, WiFog, WiRain, WiShowers, WiSnow, WiThunderstorm, } from "react-icons/wi";
 import { useUserLocation } from "../../hooks/useUserLocation";
 import { useWeather, type WeatherResponse } from "../../hooks/useWeather";
 
@@ -94,13 +75,13 @@ const pickTodaySnapshot = (data: WeatherResponse) => {
 };
 
 const WeatherSection = () => {
-  // 1) Get user location (or fallback)
+  // Get user location (or fallback)
   const { lat, lon, loading: locLoading } = useUserLocation();
 
   const finalLat = lat ?? DEFAULT_LAT;
   const finalLon = lon ?? DEFAULT_LON;
 
-  // 2) Get weather for that location
+  // Get weather for that location
   const {
     data,
     loading: weatherLoading,

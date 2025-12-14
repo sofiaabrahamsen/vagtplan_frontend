@@ -1,15 +1,4 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-import {
-  Box,
-  Button,
-  Flex,
-  FormControl,
-  FormLabel,
-  Heading,
-  Input,
-  VStack,
-  useToast,
-} from "@chakra-ui/react";
+import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, VStack, useToast, } from "@chakra-ui/react";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -86,7 +75,7 @@ const LoginPage = () => {
           Sign in
         </Heading>
 
-        <form onSubmit={handleLogin}>
+        <form onSubmit={(e) => void handleLogin(e)}>
           <VStack spacing={4}>
             <FormControl isRequired>
               <FormLabel color="white">Username</FormLabel>

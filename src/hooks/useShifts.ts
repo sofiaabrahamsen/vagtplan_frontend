@@ -4,6 +4,7 @@ import type { Shift } from "../entities/Shift";
 import { shiftService } from "../services/shiftService";
 export type ClockMode = "in" | "out" | "unavailable";
 const shiftsKey = ["employeeShifts"] as const;
+
 // ---- Helpers ----
 const pad2 = (n: number) => String(n).padStart(2, "0");
 const nowAsTimeSpanString = (): string => {

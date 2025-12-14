@@ -1,17 +1,7 @@
-import {
-  Alert,
-  AlertDescription,
-  AlertIcon,
-  AlertTitle,
-  Box,
-  Spinner,
-  VStack,
-} from "@chakra-ui/react";
+import { Alert, AlertDescription, AlertIcon, AlertTitle, Box, Spinner, VStack, } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 
-import DashboardLayout, {
-  type DashboardNavItem,
-} from "../components/DashboardLayout";
+import DashboardLayout, { type DashboardNavItem, } from "../components/DashboardLayout";
 
 import EditPersonalInfoModal from "../components/EditPersonalInfoModal";
 import ClockInOutSection from "../components/dashboard/ClockInOutSection";

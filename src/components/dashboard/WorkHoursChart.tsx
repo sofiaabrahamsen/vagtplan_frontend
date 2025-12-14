@@ -1,12 +1,5 @@
 import { Box, Heading, Text, Divider } from "@chakra-ui/react";
-import {
-  ResponsiveContainer,
-  BarChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Bar,
-} from "recharts";
+import { ResponsiveContainer, BarChart, XAxis, YAxis, Tooltip, Bar, } from "recharts";
 import type { MonthlyHoursRow } from "../../entities/WorkHours";
 
 interface Props {

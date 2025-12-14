@@ -1,4 +1,3 @@
-// entities/WorkHours.ts
 export interface MonthlyHoursRow {
   employeeId: number;
   firstName: string;

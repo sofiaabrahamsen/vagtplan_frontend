@@ -1,33 +1,5 @@
-// src/components/admin/AdminShiftsSection.tsx
-import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  IconButton,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Select,
-  Spinner,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
-  useToast,
+import { Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton, ModalContent,
+  ModalFooter, ModalHeader, ModalOverlay, Select, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
@@ -36,7 +8,7 @@ import { useAdminShifts } from "../../hooks/admin/useAdminShifts";
 import { useBicycles } from "../../hooks/admin/useBicycles";
 import { useGetAllEmployees } from "../../hooks/admin/useGetAllEmployees";
 import { useRoutes } from "../../hooks/admin/useRoutes";
-import type { Shift } from "../../services/shiftService";
+import type { Shift } from "../../entities/Shift";
 
 type Mode = "create" | "edit";
 
@@ -68,32 +40,16 @@ const AdminShiftsSection = () => {
   const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const {
-    shifts,
-    loading,
-    error,
-    createShift,
-    updateShift,
-    deleteShift,
-  } = useAdminShifts();
+  const { shifts, loading, error, createShift, updateShift, deleteShift } =
+    useAdminShifts();
 
-  const {
-    employees,
-    loading: employeesLoading,
-    error: employeesError,
-  } = useGetAllEmployees();
+  const { employees, loading: employeesLoading, error: employeesError } =
+    useGetAllEmployees();
 
-  const {
-    bicycles,
-    loading: bicyclesLoading,
-    error: bicyclesError,
-  } = useBicycles();
+  const { bicycles, loading: bicyclesLoading, error: bicyclesError } =
+    useBicycles();
 
-  const {
-    routes,
-    loading: routesLoading,
-    error: routesError,
-  } = useRoutes();
+  const { routes, loading: routesLoading, error: routesError } = useRoutes();
 
   const [form, setForm] = useState<ShiftForm>(emptyForm);
   const [mode, setMode] = useState<Mode>("create");
@@ -106,27 +62,18 @@ const AdminShiftsSection = () => {
   const employeeMap = useMemo(
     () =>
       new Map(
-        employees.map((e) => [
-          e.employeeId,
-          `${e.firstName} ${e.lastName}`,
-        ])
+        employees.map((e) => [e.employeeId, `${e.firstName} ${e.lastName}`])
       ),
     [employees]
   );
 
   const bicycleMap = useMemo(
-    () =>
-      new Map(
-        bicycles.map((b) => [b.bicycleId, b.bicycleNumber])
-      ),
+    () => new Map(bicycles.map((b) => [b.bicycleId, b.bicycleNumber])),
     [bicycles]
   );
 
   const routeMap = useMemo(
-    () =>
-      new Map(
-        routes.map((r) => [r.id, r.routeNumber])
-      ),
+    () => new Map(routes.map((r) => [r.id, r.routeNumber])),
     [routes]
   );
 
@@ -147,9 +94,7 @@ const AdminShiftsSection = () => {
 
   const openEdit = (shift: Shift) => {
     const d = new Date(shift.dateOfShift);
-    const yyyyMmDd = !Number.isNaN(d.getTime())
-      ? d.toISOString().slice(0, 10)
-      : "";
+    const yyyyMmDd = !Number.isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : "";
 
     setMode("edit");
     setForm({
@@ -163,9 +108,7 @@ const AdminShiftsSection = () => {
     onOpen();
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
 
     if (name === "employeeId" || name === "bicycleId" || name === "routeId") {
@@ -173,12 +116,18 @@ const AdminShiftsSection = () => {
         ...prev,
         [name]: value === "" ? "" : Number(value),
       }));
-    } else if (name === "substitutedId") {
+      return;
+    }
+
+    if (name === "substitutedId") {
       setForm((prev) => ({
         ...prev,
         substitutedId: value === "" ? "" : Number(value),
       }));
-    } else if (name === "dateOfShift") {
+      return;
+    }
+
+    if (name === "dateOfShift") {
       setForm((prev) => ({ ...prev, dateOfShift: value }));
     }
   };
@@ -191,14 +140,14 @@ const AdminShiftsSection = () => {
 
     setSaving(true);
     try {
-      const dateIso = new Date(form.dateOfShift + "T00:00:00").toISOString();
+      const dateIso = new Date(`${form.dateOfShift}T00:00:00`).toISOString();
 
       const substitutedId =
         form.substitutedId === "" || form.substitutedId == null
           ? (form.employeeId as number)
-          : (form.substitutedId);
+          : form.substitutedId;
 
-      const payload = {
+      const payload: Partial<Shift> = {
         dateOfShift: dateIso,
         employeeId: form.employeeId as number,
         bicycleId: form.bicycleId as number,
@@ -226,15 +175,10 @@ const AdminShiftsSection = () => {
 
       onClose();
     } catch (err: unknown) {
-      let description;  
-       if (err instanceof Error) {
-        description = err.message;
-       } else{
-        description = "Unknown error";
-       }
+      const description = err instanceof Error ? err.message : "Unknown error";
       toast({
         title: "Save failed",
-        description: description,
+        description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -258,15 +202,10 @@ const AdminShiftsSection = () => {
         isClosable: true,
       });
     } catch (err: unknown) {
-      let description;
-       if (err instanceof Error) {
-        description = err.message;
-       } else{
-        description = "Unknown error";
-       }
+      const description = err instanceof Error ? err.message : "Unknown error";
       toast({
         title: "Delete failed",
-        description: description,
+        description,
         status: "error",
         duration: 4000,
         isClosable: true,
@@ -276,8 +215,7 @@ const AdminShiftsSection = () => {
     }
   };
 
-  const anyLoading =
-    loading || employeesLoading || bicyclesLoading || routesLoading;
+  const anyLoading = loading || employeesLoading || bicyclesLoading || routesLoading;
 
   const anyError = error ?? employeesError ?? bicyclesError ?? routesError;
 
@@ -285,25 +223,13 @@ const AdminShiftsSection = () => {
   // Render
   // -----------------------------
   return (
-    <Box
-      p={4}
-      bg="white"
-      borderWidth="1px"
-      borderColor="gray.200"
-      rounded="md"
-      shadow="sm"
-    >
+    <Box p={4} bg="white" borderWidth="1px" borderColor="gray.200" rounded="md" shadow="sm">
       <HStack justify="space-between" mb={4}>
         <Text fontWeight="semibold" color="gray.700">
           Shifts
         </Text>
 
-        <Button
-          size="sm"
-          leftIcon={<FiPlus />}
-          colorScheme="blue"
-          onClick={openCreate}
-        >
+        <Button size="sm" leftIcon={<FiPlus />} colorScheme="blue" onClick={openCreate}>
           New shift
         </Button>
       </HStack>
@@ -320,9 +246,7 @@ const AdminShiftsSection = () => {
       {anyError && !anyLoading && (
         <Alert status="error" mb={3}>
           <AlertIcon />
-          <Text fontSize="sm">
-            {anyError}
-          </Text>
+          <Text fontSize="sm">{anyError}</Text>
         </Alert>
       )}
 
@@ -363,8 +287,7 @@ const AdminShiftsSection = () => {
                   </Td>
                   <Td color="gray.800">
                     {s.substitutedId && s.substitutedId !== s.employeeId
-                      ? employeeMap.get(s.substitutedId) ??
-                        `#${s.substitutedId}`
+                      ? employeeMap.get(s.substitutedId) ?? `#${s.substitutedId}`
                       : "Self"}
                   </Td>
                   <Td color="gray.800">
@@ -401,33 +324,16 @@ const AdminShiftsSection = () => {
       <Modal isOpen={isOpen} onClose={onClose} size="md">
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>
-            {isEdit ? "Edit shift" : "Create shift"}
-          </ModalHeader>
+          <ModalHeader>{isEdit ? "Edit shift" : "Create shift"}</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <FormControl
-              mb={3}
-              isRequired
-              isInvalid={!form.dateOfShift}
-            >
+            <FormControl mb={3} isRequired isInvalid={!form.dateOfShift}>
               <FormLabel>Date of shift</FormLabel>
-              <Input
-                type="date"
-                name="dateOfShift"
-                value={form.dateOfShift}
-                onChange={handleChange}
-              />
-              {!form.dateOfShift && (
-                <FormErrorMessage>Date is required.</FormErrorMessage>
-              )}
+              <Input type="date" name="dateOfShift" value={form.dateOfShift} onChange={handleChange} />
+              {!form.dateOfShift && <FormErrorMessage>Date is required.</FormErrorMessage>}
             </FormControl>
 
-            <FormControl
-              mb={3}
-              isRequired
-              isInvalid={form.employeeId === ""}
-            >
+            <FormControl mb={3} isRequired isInvalid={form.employeeId === ""}>
               <FormLabel>Employee</FormLabel>
               <Select
                 name="employeeId"
@@ -442,17 +348,11 @@ const AdminShiftsSection = () => {
                 ))}
               </Select>
               {form.employeeId === "" && (
-                <FormErrorMessage>
-                  Employee is required.
-                </FormErrorMessage>
+                <FormErrorMessage>Employee is required.</FormErrorMessage>
               )}
             </FormControl>
 
-            <FormControl
-              mb={3}
-              isRequired
-              isInvalid={form.bicycleId === ""}
-            >
+            <FormControl mb={3} isRequired isInvalid={form.bicycleId === ""}>
               <FormLabel>Bicycle</FormLabel>
               <Select
                 name="bicycleId"
@@ -467,17 +367,11 @@ const AdminShiftsSection = () => {
                 ))}
               </Select>
               {form.bicycleId === "" && (
-                <FormErrorMessage>
-                  Bicycle is required.
-                </FormErrorMessage>
+                <FormErrorMessage>Bicycle is required.</FormErrorMessage>
               )}
             </FormControl>
 
-            <FormControl
-              mb={3}
-              isRequired
-              isInvalid={form.routeId === ""}
-            >
+            <FormControl mb={3} isRequired isInvalid={form.routeId === ""}>
               <FormLabel>Route</FormLabel>
               <Select
                 name="routeId"
@@ -492,9 +386,7 @@ const AdminShiftsSection = () => {
                 ))}
               </Select>
               {form.routeId === "" && (
-                <FormErrorMessage>
-                  Route is required.
-                </FormErrorMessage>
+                <FormErrorMessage>Route is required.</FormErrorMessage>
               )}
             </FormControl>
 
@@ -518,11 +410,13 @@ const AdminShiftsSection = () => {
               </Select>
             </FormControl>
           </ModalBody>
+
           <ModalFooter>
             <Button
               colorScheme="blue"
               mr={3}
-              onClick={() =>handleSave}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onClick={handleSave}
               isLoading={saving}
               isDisabled={!isFormValid}
             >

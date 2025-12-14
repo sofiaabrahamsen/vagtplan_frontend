@@ -1,34 +1,7 @@
-// src/components/admin/AdminBicyclesSection.tsx
 import React, { useMemo, useState } from "react";
 import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
-  FormControl,
-  FormErrorMessage,
-  FormLabel,
-  HStack,
-  IconButton,
-  Input,
-  Modal,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalFooter,
-  ModalHeader,
-  ModalOverlay,
-  Spinner,
-  Switch,
-  Table,
-  Tbody,
-  Td,
-  Text,
-  Th,
-  Thead,
-  Tr,
-  useDisclosure,
-  useToast,
+  Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
+  ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spinner, Switch, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast,
 } from "@chakra-ui/react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 
@@ -40,7 +13,6 @@ type Mode = "create" | "edit";
 
 interface BicycleForm {
   bicycleId?: number;
-  // 👇 Always string in the form, we convert to number on save
   bicycleNumber: string;
   inOperate: boolean;
 }
@@ -346,7 +318,7 @@ function AdminBicyclesSection()
           <ModalFooter>
             <Button
               colorScheme="blue"
-              mr={3}
+              mr={3}     
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={handleSave}
               isLoading={saving}
