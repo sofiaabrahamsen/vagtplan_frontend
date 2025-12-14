@@ -7,7 +7,7 @@ import {
   Spinner,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import DashboardLayout, {
   type DashboardNavItem,
@@ -20,7 +20,6 @@ import RoutesList from "../components/dashboard/RoutesList";
 import ShiftsTable from "../components/dashboard/ShiftsTable";
 import WeatherSection from "../components/dashboard/WeatherSection";
 import WorkHoursChart from "../components/dashboard/WorkHoursChart";
-
 
 import type { Employee } from "../entities/Employee";
 import { useEmployeeDashboard } from "../hooks/useDashboardData";
@@ -47,18 +46,12 @@ const EmployeeDashboard = () => {
 
   const { updateEmployee } = useUpdateEmployee();
 
-  const [employee, setEmployee] = useState<Employee | null>(null);
-
   const [modalOpen, setModalOpen] = useState(false);
   const [modalEmployee, setModalEmployee] = useState<Employee | null>(null);
 
-  useEffect(() => {
-    setEmployee(fetchedEmployee ?? null);
-  }, [fetchedEmployee]);
-
   const handleEditClick = () => {
-    if (!employee) return;
-    setModalEmployee({ ...employee });
+    if (!fetchedEmployee) return;
+    setModalEmployee({ ...fetchedEmployee });
     setModalOpen(true);
   };
 
@@ -72,7 +65,6 @@ const EmployeeDashboard = () => {
       const result = await updateEmployee(updatedEmployee);
 
       if (result?.success) {
-        setEmployee(updatedEmployee);
         handleCloseModal();
       } else {
         alert(result?.error ?? "Failed to update employee");
@@ -122,11 +114,14 @@ const EmployeeDashboard = () => {
 
         {/* PROFILE */}
         <Box id="section-profile">
-          {employee && (
-            <PersonalInfoCard user={employee} onEditClick={handleEditClick} />
+          {fetchedEmployee && (
+            <PersonalInfoCard
+              user={fetchedEmployee}
+              onEditClick={handleEditClick}
+            />
           )}
 
-          {!loading && !error && !employee && (
+          {!loading && !error && !fetchedEmployee && (
             <Alert status="info">
               <AlertIcon />
               No employee data could be found.

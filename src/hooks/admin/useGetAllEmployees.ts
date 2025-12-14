@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Employee } from "../../entities/Employee";
-import { employeeService, type EmployeePayload } from "../../services/employeeService";
+import {
+  adminEmployeeService,
+  type AdminEmployeeCreatePayload,
+  type AdminEmployeeUpdatePayload,
+} from "../../services/adminEmployeeService";
 
 const employeesKey = ["employees"] as const;
 
@@ -9,40 +13,65 @@ export const useGetAllEmployees = () => {
 
   const { data, isLoading, error, refetch } = useQuery<Employee[], Error>({
     queryKey: employeesKey,
-    queryFn: () => employeeService.getAllEmployees(),
+    queryFn: () => adminEmployeeService.getAllEmployees(),
   });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: EmployeePayload) => employeeService.createEmployee(payload),
+  const createMutation = useMutation<void, Error, AdminEmployeeCreatePayload>({
+    mutationFn: async (payload) => {
+      await adminEmployeeService.createEmployee(payload);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: employeesKey });
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: EmployeePayload }) =>
-      employeeService.updateEmployee(id, payload),
+  const updateMutation = useMutation<
+    void,
+    Error,
+    { id: number; payload: AdminEmployeeUpdatePayload }
+  >({
+    mutationFn: async ({ id, payload }) => {
+      await adminEmployeeService.updateEmployee(id, payload);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: employeesKey });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => employeeService.deleteEmployee(id),
+  const deleteMutation = useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await adminEmployeeService.deleteEmployee(id);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: employeesKey });
     },
   });
+
+  const loading =
+    !!isLoading ||
+    createMutation.isLoading ||
+    updateMutation.isLoading ||
+    deleteMutation.isLoading;
+
+  const errorMsg: string | null =
+    error?.message ??
+    createMutation.error?.message ??
+    updateMutation.error?.message ??
+    deleteMutation.error?.message ??
+    null;
 
   return {
     employees: data ?? [],
-    loading: isLoading,
-    error: error?.message ?? null,
+    loading,
+    error: errorMsg,
     refetch,
 
-    createEmployee: (payload: EmployeePayload) => createMutation.mutateAsync(payload),
-    updateEmployee: (id: number, payload: EmployeePayload) =>
+    createEmployee: (payload: AdminEmployeeCreatePayload) =>
+      createMutation.mutateAsync(payload),
+
+    updateEmployee: (id: number, payload: AdminEmployeeUpdatePayload) =>
       updateMutation.mutateAsync({ id, payload }),
+
     deleteEmployee: (id: number) => deleteMutation.mutateAsync(id),
   };
 };
