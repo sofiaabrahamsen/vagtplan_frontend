@@ -1,66 +1,47 @@
-// src/hooks/admin/useRoutes.ts
-import { useCallback, useEffect, useState } from "react";
-import {
-  routeService,
-  type Route,
-  type RoutePayload,
-} from "../../services/routeService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { routeService, type Route, type RoutePayload } from "../../services/routeService";
+
+const routesKey = ["routes"] as const;
 
 export const useRoutes = () => {
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchRoutes = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, isLoading, error, refetch } = useQuery<Route[], Error>({
+    queryKey: routesKey,
+    queryFn: () => routeService.getAllRoutes(),
+  });
 
-    try {
-      const data = await routeService.getAllRoutes();
-      setRoutes(data);
-    } catch (err: unknown) {
-       if (err instanceof Error) {
-      setError(err?.message );
-       } else {
-      setError("An unknown error occurred");
-       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchRoutes();
-  }, [fetchRoutes]);
-
-  const createRoute = useCallback(async (payload: RoutePayload) => {
-    const created = await routeService.createRoute(payload);
-    setRoutes((prev) => [...prev, created]);
-    return created;
-  }, []);
-
-  const updateRoute = useCallback(
-    async (id: number, payload: RoutePayload) => {
-      await routeService.updateRoute(id, payload);
-      setRoutes((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, ...payload } : r))
-      );
+  const createMutation = useMutation({
+    mutationFn: (payload: RoutePayload) => routeService.createRoute(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: routesKey });
     },
-    []
-  );
+  });
 
-  const deleteRoute = useCallback(async (id: number) => {
-    await routeService.deleteRoute(id);
-    setRoutes((prev) => prev.filter((r) => r.id !== id));
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: RoutePayload }) =>
+      routeService.updateRoute(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: routesKey });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => routeService.deleteRoute(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: routesKey });
+    },
+  });
 
   return {
-    routes,
-    loading,
-    error,
-    refetch: fetchRoutes,
-    createRoute,
-    updateRoute,
-    deleteRoute,
+    routes: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+    refetch,
+
+    createRoute: (payload: RoutePayload) => createMutation.mutateAsync(payload),
+    updateRoute: (id: number, payload: RoutePayload) =>
+      updateMutation.mutateAsync({ id, payload }),
+    deleteRoute: (id: number) => deleteMutation.mutateAsync(id),
   };
 };

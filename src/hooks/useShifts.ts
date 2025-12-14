@@ -1,221 +1,109 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo } from "react";
 import type { Shift } from "../entities/Shift";
-
-// Helpers
-const pad = (n: number) => String(n).padStart(2, "0");
-
-const nowAsTimeSpanString = () => {
+import { shiftService } from "../services/shiftService";
+export type ClockMode = "in" | "out" | "unavailable";
+const shiftsKey = ["employeeShifts"] as const;
+// ---- Helpers ----
+const pad2 = (n: number) => String(n).padStart(2, "0");
+const nowAsTimeSpanString = (): string => {
   const d = new Date();
-  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
 };
-
-const safeDate = (iso?: string) => {
-  if (!iso) return null;
+const safeDate = (iso: string): Date | null => {
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? null : d;
 };
-
-const isSameDay = (a: Date, b: Date) =>
+const isSameDay = (a: Date, b: Date): boolean =>
   a.getFullYear() === b.getFullYear() &&
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
-
-const parseTimeToMinutes = (time?: string | null) => {
-  if (!time) return null;
-  const parts = time.split(":").map(Number);
-  if (parts.length < 2 || parts.some((p) => Number.isNaN(p))) return null;
-  const [h, m, s = 0] = parts;
-  return h * 60 + m + s / 60;
-};
-
-const calcHours = (start?: string | null, end?: string | null) => {
-  const sm = parseTimeToMinutes(start);
-  const em = parseTimeToMinutes(end);
-  if (sm == null || em == null) return null;
-
-  const diffMinutes = em - sm;
-  if (diffMinutes < 0) return null;
-  return Math.round((diffMinutes / 60) * 100) / 100;
-};
-
-export type ClockMode = "in" | "out" | "unavailable";
-
 export const useShifts = () => {
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/dot-notation
-  const apiUrl = import.meta.env["VITE_API_URL"];
-
-  const fetchShifts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token found");
-
-      const response:Response = await fetch(`${apiUrl}/Employee/get-employee-shifts`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!response.ok) throw new Error("Failed to fetch employee shifts");
-
-      const data:unknown = await response.json();
-
-      if(!Array.isArray(data)) throw new Error("Invalid data format received");
-
-      const formatted = data as Shift[];
-
-      setShifts(formatted);
-    } catch (err: unknown) {
-       if (err instanceof Error) {
-      setError(err.message);
-      } else {
-        setError("An unknown error occurred");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [apiUrl]);
-
-  useEffect(() => {
-    void fetchShifts();
-  }, [fetchShifts]);
-
-  // -----------------------------
-  // Derive today’s shift
-  // -----------------------------
+  const queryClient = useQueryClient();
+  const shiftsQuery = useQuery<Shift[], Error>({
+    queryKey: shiftsKey,
+    queryFn: () => shiftService.getEmployeeShifts(),
+  });
+  // Type generics directly on useMutation
+  const startMutation = useMutation<void, Error, number>({
+    mutationFn: (shiftId: number) =>
+      shiftService.startShift(shiftId, nowAsTimeSpanString()),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: shiftsKey });
+    },
+  });
+  const endMutation = useMutation<void, Error, number>({
+    mutationFn: (shiftId: number) =>
+      shiftService.endShift(shiftId, nowAsTimeSpanString()),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: shiftsKey });
+    },
+  });
+  const shifts: Shift[] = shiftsQuery.data ?? [];
+  // !! Force booleans to satisfy eslint no-unsafe-assignment
+  const loading =
+    !!shiftsQuery.isLoading || !!startMutation.isLoading || !!endMutation.isLoading;
+  const error: string | null =
+    shiftsQuery.error?.message ??
+    startMutation.error?.message ??
+    endMutation.error?.message ??
+    null;
   const todayShifts = useMemo(() => {
     const today = new Date();
-    return (shifts ?? []).filter((s) => {
+    return shifts.filter((s) => {
       const d = safeDate(s.dateOfShift);
       return d ? isSameDay(d, today) : false;
     });
   }, [shifts]);
-
-  // If employee can have multiple shifts today, this picks:
-  // 1) in-progress first
-  // 2) otherwise a startable one
   const inProgressToday = useMemo(
     () => todayShifts.find((s) => !!s.startTime && !s.endTime) ?? null,
     [todayShifts]
   );
-
   const startableToday = useMemo(
     () => todayShifts.find((s) => !s.startTime) ?? null,
     [todayShifts]
   );
-
   const clockMode: ClockMode = useMemo(() => {
     if (inProgressToday) return "out";
     if (startableToday) return "in";
     return "unavailable";
   }, [inProgressToday, startableToday]);
-
-  // -----------------------------
-  // Low-level actions (id-based)
-  // -----------------------------
   const startShift = useCallback(
-    async (shiftId: number): Promise<void> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token found");
-
-      const startTime = nowAsTimeSpanString();
-
-      const response = await fetch(
-        `${apiUrl}/Shift/${shiftId}/start?startTime=${encodeURIComponent(
-          startTime
-        )}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to start shift");
-
-      setShifts((prev) =>
-        prev.map((s) =>
-          s.shiftId === shiftId
-            ? { ...s, startTime, endTime: null, totalHours: null }
-            : s
-        )
-      );
+    async (shiftId: number) => {
+      await startMutation.mutateAsync(shiftId);
     },
-    [apiUrl]
+    [startMutation]
   );
-
   const endShift = useCallback(
-    async (shiftId: number): Promise<void> => {
-      const token = localStorage.getItem("token");
-      if (!token) throw new Error("No token found");
-
-      const endTime = nowAsTimeSpanString();
-
-      const response = await fetch(
-        `${apiUrl}/Shift/${shiftId}/end?endTime=${encodeURIComponent(endTime)}`,
-        {
-          method: "PUT",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to end shift");
-
-      setShifts((prev) =>
-        prev.map((s) => {
-          if (s.shiftId !== shiftId) return s;
-
-          const calculated = calcHours(s.startTime ?? null, endTime);
-
-          return {
-            ...s,
-            endTime,
-            totalHours: calculated ?? s.totalHours ?? null,
-          };
-        })
-      );
+    async (shiftId: number) => {
+      await endMutation.mutateAsync(shiftId);
     },
-    [apiUrl]
+    [endMutation]
   );
-
-  // -----------------------------
-  // Button-level actions (no id)
-  // -----------------------------
-  const clockIn = useCallback(async (): Promise<void> => {
+  const clockIn = useCallback(async () => {
     if (!startableToday) {
-      throw new Error("No shift available to clock in today.");
+      throw new Error("Ingen vagt tilgængelig at clocke ind på i dag.");
     }
     await startShift(startableToday.shiftId);
   }, [startableToday, startShift]);
-
-  const clockOut = useCallback(async (): Promise<void> => {
+  const clockOut = useCallback(async () => {
     if (!inProgressToday) {
-      throw new Error("No active shift to clock out from.");
+      throw new Error("Ingen aktiv vagt at clocke ud fra.");
     }
     await endShift(inProgressToday.shiftId);
   }, [inProgressToday, endShift]);
-
   return {
     shifts,
     loading,
     error,
-
-    // button UX
     clockMode,
     clockIn,
     clockOut,
-
-    // useful for other UI
-    startShift,
-    endShift,
-    refetch: fetchShifts,
-
-    // optional info
     todayShifts,
     inProgressToday,
     startableToday,
+    startShift,
+    endShift,
+    refetch: shiftsQuery.refetch,
   };
 };

@@ -1,66 +1,62 @@
-import { useCallback, useEffect, useState } from "react";
-import { bicycleService, type Bicycle, type BicyclePayload } from "../../services/bicycleService";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  bicycleService,
+  type Bicycle,
+  type BicyclePayload,
+} from "../../services/bicycleService";
+
+// 1) Query key = “navnet” på cachen for listen
+const bicyclesKey = ["bicycles"] as const;
 
 export const useBicycles = () => {
-  const [bicycles, setBicycles] = useState<Bicycle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchBicycles = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const data = await bicycleService.getAllBicycles();
-      setBicycles(data);
-    } catch (err: unknown) {
-      let description:string;
-      if(err instanceof Error){
-        description = err.message;
-      } else {
-        description = "Unknown error";
-      }
-      setError(description);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchBicycles();
-  }, [fetchBicycles]);
-
-  const createBicycle = useCallback(
-    async (payload: BicyclePayload) => {
-      const created = await bicycleService.createBicycle(payload);
-      setBicycles((prev) => [...prev, created]);
-      return created;
-    },
-    []
-  );
-
-  const updateBicycle = useCallback(
-    async (id: number, payload: BicyclePayload) => {
-      await bicycleService.updateBicycle(id, payload);
-      setBicycles((prev) =>
-        prev.map((b) => (b.bicycleId === id ? { ...b, ...payload } : b))
-      );
-    },
-    []
-  );
-
-  const deleteBicycle = useCallback(async (id: number) => {
-    await bicycleService.deleteBicycle(id);
-    setBicycles((prev) => prev.filter((b) => b.bicycleId !== id));
-  }, []);
-
-  return {
-    bicycles,
-    loading,
+  // 2) useQuery = henter data + cacher
+  const {
+    data,
+    isLoading,
     error,
-    refetch: fetchBicycles,
-    createBicycle,
-    updateBicycle,
-    deleteBicycle,
+    refetch,
+  } = useQuery<Bicycle[], Error>({
+    queryKey: bicyclesKey,
+    queryFn: () => bicycleService.getAllBicycles(),
+  });
+
+  // 3) useMutation = ændrer data på serveren
+  //    Når den lykkes => invalidér listen => React Query henter listen igen
+  const createMutation = useMutation({
+    mutationFn: (payload: BicyclePayload) => bicycleService.createBicycle(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: bicyclesKey });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: BicyclePayload }) =>
+      bicycleService.updateBicycle(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: bicyclesKey });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => bicycleService.deleteBicycle(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: bicyclesKey });
+    },
+  });
+
+  // 4) Return
+  return {
+    bicycles: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+
+    refetch,
+
+    createBicycle: (payload: BicyclePayload) => createMutation.mutateAsync(payload),
+    updateBicycle: (id: number, payload: BicyclePayload) =>
+      updateMutation.mutateAsync({ id, payload }),
+    deleteBicycle: (id: number) => deleteMutation.mutateAsync(id),
   };
 };

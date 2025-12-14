@@ -1,111 +1,93 @@
-import { jwtDecode } from "jwt-decode";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import type { Employee } from "../entities/Employee";
 import type { Route } from "../entities/Route";
 import type { MonthlyHoursRow } from "../entities/WorkHours";
 
-import { employeeService } from "../services/employeeService";
+import { employeeService, type UserInfoDto } from "../services/employeeService";
 import { workHoursService } from "../services/workHoursService";
 
-interface EmployeeDashboardData {
-  employee: Employee | null;
-  routes: Route[];
-  workHours: MonthlyHoursRow[];
-  loading: boolean;
-  error: string | null;
-}
+const buildLastMonths = (count: number) => {
+  const now = new Date();
+  const months: { year: number; month: number }[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({ year: d.getFullYear(), month: d.getMonth() + 1 }); // month: 1-12
+  }
+
+  return months.reverse();
+};
+
+const fetchLastMonthsHours = async (employeeId: number, monthsBack = 3) => {
+  const months = buildLastMonths(monthsBack);
+
+  const results = await Promise.all(
+    months.map(({ year, month }) =>
+      // ApiClient method
+      workHoursService.getAll({
+        params: { employeeId, year, month },
+      })
+    )
+  );
+
+  return results
+    .map((rows) => (rows.length > 0 ? rows[0] : null))
+    .filter((x): x is MonthlyHoursRow => x !== null);
+};
 
 export const useEmployeeDashboard = () => {
-  const [employee, setEmployee] = useState<Employee | null>(null);
-  const [routes, setRoutes] = useState<Route[]>([]);
-  const [workHours, setWorkHours] = useState<MonthlyHoursRow[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const userQuery = useQuery<UserInfoDto, Error>({
+    queryKey: ["userInfo"],
+    queryFn: () => employeeService.getUserInfo(),
+  });
 
-  useEffect(() => {
-    const fetchWorkHoursForLastMonths = async (
-      employeeId: number,
-      monthsBack = 3
-    ) => {
-      const results: MonthlyHoursRow[] = [];
-      const now = new Date();
+  const employeeId = userQuery.data?.employeeId ?? null;
 
-      for (let offset = 0; offset < monthsBack; offset++) {
-        const date = new Date(now.getFullYear(), now.getMonth() - offset, 1);
-        const year = date.getFullYear();
-        const month = date.getMonth() + 1;
+  const routesQuery = useQuery<Route[], Error>({
+    queryKey: ["employeeRoutes", employeeId],
+    queryFn: () => employeeService.getEmployeeRoutesById(employeeId!),
+    enabled: !!employeeId,
+  });
 
-        try {
-          const rows = await workHoursService.getAll({
-            params: { employeeId, month, year },
-          });
+  const workHoursQuery = useQuery<MonthlyHoursRow[], Error>({
+    queryKey: ["workHoursLast3Months", employeeId],
+    queryFn: () => fetchLastMonthsHours(employeeId!, 3),
+    enabled: !!employeeId,
+  });
 
-          if (rows.length > 0) {
-            results.push(rows[0]);
-          }
-        } catch (err) {
-          console.warn(`Failed to load hours for ${month}/${year}`, err);
-        }
-      }
+  const employee: Employee | null = useMemo(() => {
+    const u = userQuery.data;
+    if (!u?.employee) return null;
 
-      return results.reverse();
+    return {
+      employeeId: u.employee.employeeId,
+      firstName: u.employee.firstName,
+      lastName: u.employee.lastName,
+      address: u.employee.address,
+      email: u.employee.email,
+      phone: u.employee.phone,
+      experienceLevel: u.employee.experienceLevel,
+      username: u.username,
+      password: "", // never comes from the backend
     };
+  }, [userQuery.data]);
 
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
+  const loading =
+    !!userQuery.isLoading || !!routesQuery.isLoading || !!workHoursQuery.isLoading;
 
-      try {
-        const token = localStorage.getItem("token");
-        if (!token) throw new Error("No token found");
-
-        // Decode employeeId from JWT
-        const decoded = jwtDecode<{ nameid: string }>(token);
-        const userId = Number(decoded.nameid);
-
-        if (!userId) throw new Error("Token does not contain userId");
-
-        // ------------------------------------
-        // Fetch employee using service
-        // ------------------------------------
-        const employeeData = await employeeService.getById(userId);
-        setEmployee(employeeData);
-
-        const employeeId = employeeData.employeeId;
-
-        // ------------------------------------
-        // Fetch employee routes using service
-        // ------------------------------------
-        const employeeRoutes = await employeeService.getRoutesByEmployeeId(
-          employeeId
-        );
-        setRoutes(employeeRoutes);
-
-        // ------------------------------------
-        // Fetch monthly work hours
-        // ------------------------------------
-        const hours = await fetchWorkHoursForLastMonths(employeeId, 3);
-        setWorkHours(hours);
-      } catch (err: unknown) {
-         if (err instanceof Error) {
-        setError(err.message);
-         } else {
-        setError("An unknown error occurred");
-         }
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void fetchData();
-  }, []);
+  const error: string | null =
+    userQuery.error?.message ??
+    routesQuery.error?.message ??
+    workHoursQuery.error?.message ??
+    null;
 
   return {
     employee,
-    routes,
-    workHours,
+    routes: routesQuery.data ?? [],
+    workHours: workHoursQuery.data ?? [],
     loading,
     error,
-  } as EmployeeDashboardData;
+  };
 };

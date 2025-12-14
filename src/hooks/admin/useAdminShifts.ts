@@ -1,66 +1,47 @@
-import { useCallback, useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { shiftService, type Shift } from "../../services/shiftService";
 
+const adminShiftsKey = ["adminShifts"] as const;
+
 export const useAdminShifts = () => {
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchShifts = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  const { data, isLoading, error, refetch } = useQuery<Shift[], Error>({
+    queryKey: adminShiftsKey,
+    queryFn: () => shiftService.getAllShifts(),
+  });
 
-    try {
-      const data = await shiftService.getAllShifts();
-      setShifts(data ?? []);
-    } catch (err: unknown) {
-       if (err instanceof Error) {
-      setError(err?.message );
-       } else {
-        setError("An unknown error occurred");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void fetchShifts();
-  }, [fetchShifts]);
-
-  const createShift = useCallback(async (data: Partial<Shift>) => {
-    const created = await shiftService.createShift(data);
-    // If backend returns the created shift
-    if (created) {
-      setShifts((prev) => [...prev, created]);
-    } else {
-      // fallback: just refetch
-      void fetchShifts();
-    }
-  }, [fetchShifts]);
-
-  const updateShift = useCallback(
-    async (id: number, data: Partial<Shift>) => {
-      await shiftService.updateShift(id, data);
-      setShifts((prev) =>
-        prev.map((s) => (s.shiftId === id ? { ...s, ...data } as Shift : s))
-      );
+  const createMutation = useMutation({
+    mutationFn: (payload: Partial<Shift>) => shiftService.createShift(payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: adminShiftsKey });
     },
-    []
-  );
+  });
 
-  const deleteShift = useCallback(async (id: number) => {
-    await shiftService.deleteShift(id);
-    setShifts((prev) => prev.filter((s) => s.shiftId !== id));
-  }, []);
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: Partial<Shift> }) =>
+      shiftService.updateShift(id, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: adminShiftsKey });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => shiftService.deleteShift(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: adminShiftsKey });
+    },
+  });
 
   return {
-    shifts,
-    loading,
-    error,
-    refetch: fetchShifts,
-    createShift,
-    updateShift,
-    deleteShift,
+    shifts: data ?? [],
+    loading: isLoading,
+    error: error?.message ?? null,
+    refetch,
+
+    createShift: (payload: Partial<Shift>) => createMutation.mutateAsync(payload),
+    updateShift: (id: number, payload: Partial<Shift>) =>
+      updateMutation.mutateAsync({ id, payload }),
+    deleteShift: (id: number) => deleteMutation.mutateAsync(id),
   };
 };
