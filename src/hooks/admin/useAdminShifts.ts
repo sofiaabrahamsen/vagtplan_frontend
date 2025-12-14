@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { shiftService, type Shift } from "../../services/shiftService";
+import type { Shift } from "../../entities/Shift";
+import { adminShiftService } from "../../services/adminShiftService";
 
 const adminShiftsKey = ["adminShifts"] as const;
 
@@ -8,35 +9,50 @@ export const useAdminShifts = () => {
 
   const { data, isLoading, error, refetch } = useQuery<Shift[], Error>({
     queryKey: adminShiftsKey,
-    queryFn: () => shiftService.getAllShifts(),
+    queryFn: () => adminShiftService.getAllShifts(),
   });
 
-  const createMutation = useMutation({
-    mutationFn: (payload: Partial<Shift>) => shiftService.createShift(payload),
+  const createMutation = useMutation<void, Error, Partial<Shift>>({
+    mutationFn: async (payload) => {
+      await adminShiftService.createShift(payload);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: adminShiftsKey });
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: number; payload: Partial<Shift> }) =>
-      shiftService.updateShift(id, payload),
+  const updateMutation = useMutation<void, Error, { id: number; payload: Partial<Shift> }>({
+    mutationFn: async ({ id, payload }) => {
+      await adminShiftService.updateShift(id, payload);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: adminShiftsKey });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: number) => shiftService.deleteShift(id),
+  const deleteMutation = useMutation<void, Error, number>({
+    mutationFn: async (id) => {
+      await adminShiftService.deleteShift(id);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: adminShiftsKey });
     },
   });
+
+  const loading =
+    !!isLoading || createMutation.isLoading || updateMutation.isLoading || deleteMutation.isLoading;
+
+  const errorMsg: string | null =
+    error?.message ??
+    createMutation.error?.message ??
+    updateMutation.error?.message ??
+    deleteMutation.error?.message ??
+    null;
 
   return {
     shifts: data ?? [],
-    loading: isLoading,
-    error: error?.message ?? null,
+    loading,
+    error: errorMsg,
     refetch,
 
     createShift: (payload: Partial<Shift>) => createMutation.mutateAsync(payload),
