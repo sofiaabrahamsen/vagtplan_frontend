@@ -1,9 +1,14 @@
-import { StrictMode } from 'react'
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { createRoot } from 'react-dom/client'
 import './index.css'
-import App from './App.tsx'
 import { ChakraProvider } from '@chakra-ui/react'
-import * as Sentry from "@sentry/react";
+import * as Sentry from "@sentry/react"
+import { StrictMode } from "react"
+import ms from "ms"
+import { RouterProvider } from "react-router-dom"
+import router from "./routes.tsx"
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/dot-notation
 const SENTRYDSN: string = import.meta.env["VITE_SENTRY_DSN"];
@@ -25,10 +30,25 @@ Sentry.init({
   enableLogs: true
 });
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+      staleTime: ms("5 minutes"), // 5 minutes
+      cacheTime: ms("30 minutes"), // 30 minutes
+    },
+  },
+});
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ChakraProvider>
-      <App />
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        <ReactQueryDevtools/>
+      </QueryClientProvider>
     </ChakraProvider>
   </StrictMode>,
 )
