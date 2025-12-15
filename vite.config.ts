@@ -8,7 +8,7 @@ export default defineConfig({
     watch: {
       usePolling: true, // Enable polling for file changes
     },
-    port: 8080,
-    host: "https://vagtplanlaegning.onrender.com/",
+    port: 3000,
+    host: "0.0.0.0",
   },
 });
