@@ -48,8 +48,9 @@ export const useEmployeeDashboard = () => {
   const routesQuery = useQuery<Route[], Error>({
     queryKey: ["employeeRoutes", employeeId],
     queryFn: () => employeeService.getEmployeeRoutesById(employeeId!),
-    enabled: !!employeeId,
+    enabled: employeeId != null,
   });
+
 
   const workHoursQuery = useQuery<MonthlyHoursRow[], Error>({
     queryKey: ["workHoursLast3Months", employeeId],
