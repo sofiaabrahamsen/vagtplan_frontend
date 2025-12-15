@@ -1,10 +1,12 @@
-import { Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
+import {
+  Alert, AlertIcon, Box, Button, FormControl, FormErrorMessage, FormLabel, HStack, IconButton, Input, Modal, ModalBody, ModalCloseButton,
   ModalContent, ModalFooter, ModalHeader, ModalOverlay, Spinner, Table, Tbody, Td, Text, Th, Thead, Tr, useDisclosure, useToast,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
+import type { Route } from "../../entities/Route";
 import { useRoutes } from "../../hooks/admin/useRoutes";
-import type { Route, RoutePayload } from "../../services/routeService";
+import type { RoutePayload } from "../../services/routeService";
 
 type Mode = "create" | "edit";
 
