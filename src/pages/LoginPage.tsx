@@ -1,16 +1,11 @@
-import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, VStack, useToast, } from "@chakra-ui/react";
-//import { jwtDecode } from "jwt-decode";
+import {
+  Box, Button, Flex, FormControl, FormLabel, Heading, Input, VStack, useToast,
+} from "@chakra-ui/react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginClient } from "../services/loginClient";
 
-/*interface TokenPayload {
-  role: string;
-}*/
-
 const LoginPage = () => {
-  
-
   const toast = useToast();
   const navigate = useNavigate();
 
@@ -20,8 +15,7 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-  
+
     if (!username || !password) {
       toast({
         title: "Missing fields",
@@ -35,36 +29,16 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
 
-      //const token = await loginClient.signIn(username, password);
-      //localStorage.setItem("token", token); TODO - Delete ?
+      const { role } = await loginClient.signIn(username, password);
 
-  
-    
-      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
-      const role = await loginClient.signIn(username, password);
+      toast({ title: "Sign in successful!", status: "success", duration: 2500 });
 
-      // Decode JWT and get role
-      //const decoded = jwtDecode<TokenPayload>(token)
-      
-      toast({
-        title: "Sign in successful!",
-        status: "success",
-        duration: 2500,
-      });
-      
-      // Redirect based on role
-      if (role === "admin") {
-        console.log("PLEAAASE !!!", role);
-        
-        navigate("/dashboard-admin")
-      }
-      else if (role === "employee") navigate("/dashboard-employee");
-      else navigate("/"); // fallback
-
-
+      const r = role?.toLowerCase();
+      if (r === "admin") navigate("/dashboard-admin", { replace: true });
+      else if (r === "employee") navigate("/dashboard-employee", { replace: true });
+      else navigate("/", { replace: true });
     } catch (error) {
       console.error("SIGN-IN ERROR:", error);
-
       toast({
         title: "Sign in failed",
         description: "Invalid username or password.",
@@ -76,30 +50,14 @@ const LoginPage = () => {
     }
   };
 
-    return (
-    <Flex
-      justify="center"
-      align="center"
-      height="100vh"
-      bg="gray.100"
-      px={4}
-      flexDirection="column"
-    >
+  return (
+    <Flex justify="center" align="center" height="100vh" bg="gray.100" px={4} flexDirection="column">
       <Heading textAlign="center" mb={4} color="gray.700" size="xl">
         Go-card management system
       </Heading>
 
-      <Box
-        p={10}
-        bg="gray.600"
-        shadow="lg"
-        rounded="md"
-        width="100%"
-        maxWidth="400px"
-      >
-        <Heading textAlign="center" mb={8} color="white">
-          Sign in
-        </Heading>
+      <Box p={10} bg="gray.600" shadow="lg" rounded="md" width="100%" maxWidth="400px">
+        <Heading textAlign="center" mb={8} color="white">Sign in</Heading>
 
         <form onSubmit={(e) => void handleLogin(e)}>
           <VStack spacing={4}>
@@ -111,6 +69,7 @@ const LoginPage = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 bg="white"
                 color="black"
+                autoComplete="username"
               />
             </FormControl>
 
@@ -123,16 +82,11 @@ const LoginPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 bg="white"
                 color="black"
+                autoComplete="current-password"
               />
             </FormControl>
 
-            <Button
-              type="submit"
-              colorScheme="blue"
-              width="full"
-              isLoading={isLoading}
-              loadingText="Signing in..."
-            >
+            <Button type="submit" colorScheme="blue" width="full" isLoading={isLoading} loadingText="Signing in...">
               Sign in
             </Button>
           </VStack>

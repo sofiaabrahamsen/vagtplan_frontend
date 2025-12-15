@@ -1,36 +1,37 @@
 import type { JSX } from "react";
 import { Navigate } from "react-router-dom";
-import { getUserRole } from "../main";
+import { useQuery } from "@tanstack/react-query";
+import { axiosInstance } from "../services/api-client";
 
-interface Props {
-  children: JSX.Element;
-  roles?: string[];
+interface MeResponse { id: number; username: string; role: string }
+
+const VITE_ME_API_URL = import.meta.env.VITE_ME_API_URL as string;
+
+async function fetchMe(): Promise<MeResponse> {
+  const res = await axiosInstance.get<MeResponse>(VITE_ME_API_URL);
+  return res.data;
 }
 
-/*interface TokenPayload {
-  role: string;
-}*/
+export const ProtectedRoute = ({
+  children,
+  roles,
+}: {
+  children: JSX.Element;
+  roles?: string[];
+}) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["me"],
+    queryFn: fetchMe,
+    retry: false,
+  });
 
-export const ProtectedRoute = ({ children, roles }: Props) => {
-  //const token = localStorage.getItem("token");
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-  const userRole = getUserRole();
-  
-  if ( !userRole ) {
-    return <Navigate to="/" replace />;
-  } else if( roles && !roles.includes( userRole ) ) {
+  if (isLoading) return null; // could return a spinner component
+
+  if (isError || !data?.role) return <Navigate to="/" replace />;
+
+  if (roles && !roles.includes(data.role.toLowerCase())) {
     return <Navigate to="/" replace />;
   }
-//|| ( roles && roles.length > 0 )
-  //let decoded: TokenPayload | null = null;
-
-  //try {
-  //  decoded = jwtDecode<TokenPayload>(token);
-  //} catch {
-  //  return <Navigate to="/" replace />;
-  //}
-
-  //const userRole = decoded?.role?.toLowerCase();
 
   return children;
 };
