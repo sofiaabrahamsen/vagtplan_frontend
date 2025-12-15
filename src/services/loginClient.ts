@@ -1,6 +1,7 @@
 import { axiosInstance } from "./api-client";
 
-const VITE_LOGIN_API_URL = import.meta.env.VITE_LOGIN_API_URL as string;
+// eslint-disable-next-line @typescript-eslint/dot-notation
+const VITE_LOGIN_API_URL = import.meta.env['VITE_LOGIN_API_URL'] as string;
 
 export const loginClient = {
   async signIn(username: string, password: string): Promise<{ role: string }> {

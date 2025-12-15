@@ -5,7 +5,8 @@ import { axiosInstance } from "../services/api-client";
 
 interface MeResponse { id: number; username: string; role: string }
 
-const VITE_ME_API_URL = import.meta.env.VITE_ME_API_URL as string;
+// eslint-disable-next-line @typescript-eslint/dot-notation
+const VITE_ME_API_URL = import.meta.env['VITE_ME_API_URL'] as string;
 
 async function fetchMe(): Promise<MeResponse> {
   const res = await axiosInstance.get<MeResponse>(VITE_ME_API_URL);
