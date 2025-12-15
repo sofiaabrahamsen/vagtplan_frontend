@@ -1,12 +1,12 @@
 import { Box, Button, Flex, FormControl, FormLabel, Heading, Input, VStack, useToast, } from "@chakra-ui/react";
-import { jwtDecode } from "jwt-decode";
+//import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { loginClient } from "../services/loginClient";
 
-interface TokenPayload {
+/*interface TokenPayload {
   role: string;
-}
+}*/
 
 const LoginPage = () => {
   
@@ -21,6 +21,7 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
   
+  
     if (!username || !password) {
       toast({
         title: "Missing fields",
@@ -34,23 +35,33 @@ const LoginPage = () => {
     try {
       setIsLoading(true);
 
-      const token = await loginClient.signIn(username, password);
-      localStorage.setItem("token", token);
+      //const token = await loginClient.signIn(username, password);
+      //localStorage.setItem("token", token); TODO - Delete ?
+
+  
+    
+      // eslint-disable-next-line @typescript-eslint/await-thenable, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-assignment
+      const role = await loginClient.signIn(username, password);
 
       // Decode JWT and get role
-      const decoded = jwtDecode<TokenPayload>(token);
-      const role = decoded.role?.toLowerCase();
+      //const decoded = jwtDecode<TokenPayload>(token)
       
       toast({
         title: "Sign in successful!",
         status: "success",
         duration: 2500,
       });
-
+      
       // Redirect based on role
-      if (role === "admin") navigate("/dashboard-admin");
+      if (role === "admin") {
+        console.log("PLEAAASE !!!", role);
+        
+        navigate("/dashboard-admin")
+      }
       else if (role === "employee") navigate("/dashboard-employee");
       else navigate("/"); // fallback
+
+
     } catch (error) {
       console.error("SIGN-IN ERROR:", error);
 

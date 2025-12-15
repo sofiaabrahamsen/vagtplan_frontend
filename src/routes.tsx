@@ -27,7 +27,7 @@ const router = createBrowserRouter([
   {
     path: "/dashboard-employee",
     element: (
-      <ProtectedRoute roles={["employee"]}>
+      <ProtectedRoute roles={["employee"]}> 
         <EmployeeDashboard />
       </ProtectedRoute>
     ),
@@ -35,5 +35,6 @@ const router = createBrowserRouter([
 
   { path: "*", element: <Navigate to="/" replace /> },
 ]);
+// TODO - NICE TO HAVE - add list of roles as refactoring
 
 export default router;

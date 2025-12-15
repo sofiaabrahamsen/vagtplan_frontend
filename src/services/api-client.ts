@@ -3,24 +3,8 @@ import axios, { type AxiosRequestConfig } from "axios";
 // Create axios instance with environment API URL
 const axiosInstance = axios.create({
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/dot-notation
-  baseURL: import.meta.env["VITE_API_URL"]
-});
-
-// INTERCEPTOR: Automatically attach JWT token to all requests
-axiosInstance.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    // Ensure proper AxiosHeaders instance
-    if (!config.headers) {
-      config.headers = new axios.AxiosHeaders();
-    }
-
-    // SAFELY set Authorization header
-    config.headers.set("Authorization", `Bearer ${token}`);
-  }
-
-  return config;
+  baseURL: import.meta.env["VITE_API_URL"],
+  withCredentials: true
 });
 
 // Generic API Client

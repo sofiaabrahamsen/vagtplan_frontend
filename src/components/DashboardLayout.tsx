@@ -133,7 +133,7 @@ const DashboardLayout = ({
   const queryClient = useQueryClient();
   const handleLogout = () => {
     queryClient.clear();
-    localStorage.removeItem("token");
+    localStorage.removeItem("token"); // TODO - Secure logout endpoint?
     navigate("/", { replace: true });
   };
 

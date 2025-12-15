@@ -15,6 +15,13 @@ const SENTRYDSN: string = import.meta.env["VITE_SENTRY_DSN"];
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/dot-notation
 const VITE_API_URL: string = import.meta.env["VITE_API_URL"];
 
+let accessRole: string | null = null;
+
+export const setUserRole = (role: string) => {
+  accessRole = role;
+};
+export const getUserRole = () => accessRole;
+
 Sentry.init({
   dsn: SENTRYDSN,
   sendDefaultPii: true,
