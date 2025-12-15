@@ -1,5 +1,5 @@
 import ApiClient from "./api-client";
-import type { Route } from "../entities/Route";
+import type { export Route } from "../entities/Route";
 
 // Payload for create/update
 export interface RoutePayload {
