@@ -5,7 +5,7 @@ import {
 } from "@chakra-ui/react";
 import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 
-import type { Bicycle } from "../../services/bicycleService";
+import type { Bicycle } from "../../entities/Bicycle";
 import type { BicyclePayload } from "../../services/bicycleService";
 import { useBicycles } from "../../hooks/admin/useBicycles";
 

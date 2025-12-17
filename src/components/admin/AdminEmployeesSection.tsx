@@ -231,7 +231,6 @@ const AdminEmployeesSection = () => {
           <Table size="sm" variant="simple">
             <Thead bg="gray.50">
               <Tr>
-                <Th>ID</Th>
                 <Th>First name</Th>
                 <Th>Last name</Th>
                 <Th>Email</Th>
@@ -244,7 +243,6 @@ const AdminEmployeesSection = () => {
             <Tbody>
               {employees.map((e) => (
                 <Tr key={e.employeeId}>
-                  <Td>{e.employeeId}</Td>
                   <Td>{e.firstName}</Td>
                   <Td>{e.lastName}</Td>
                   <Td>{e.email}</Td>

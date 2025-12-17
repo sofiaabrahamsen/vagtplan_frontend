@@ -1,4 +1,4 @@
-import { Box, Heading, VStack, Alert, AlertIcon, } from "@chakra-ui/react";
+import { Box, Heading, VStack, } from "@chakra-ui/react";
 import DashboardLayout, { type DashboardNavItem, } from "../components/DashboardLayout";
 import AdminEmployeesSection from "../components/admin/AdminEmployeesSection";
 import AdminBicyclesSection from "../components/admin/AdminBicyclesSection";
@@ -15,8 +15,6 @@ const AdminManagementPage = () => {
     { label: "Bicycles", targetId: "section-bicycles" },
     { label: "Routes", targetId: "section-routes" },
     { label: "Shifts", targetId: "section-shifts" },
-    { label: "Shift plans", targetId: "section-shiftplans" },
-    { label: "Work hours", targetId: "section-workhours" },
   ];
 
   return (
@@ -52,32 +50,6 @@ const AdminManagementPage = () => {
             Shifts
           </Heading>
           <AdminShiftsSection />
-        </Box>
-
-        {/* SHIFT PLANS */}
-        <Box id="section-shiftplans">
-          <Heading size="md" mb={2}>
-            Shift plans
-          </Heading>
-          <Alert status="info" variant="subtle">
-            <AlertIcon />
-            Shift plan management UI not implemented yet. We can call
-            <code> /api/shiftplans </code> and{" "}
-            <code>/api/shiftplans/generate-6weeks</code> from here.
-          </Alert>
-        </Box>
-
-        {/* WORK HOURS */}
-        <Box id="section-workhours">
-          <Heading size="md" mb={2}>
-            Work hours (6-week plan)
-          </Heading>
-          <Alert status="info" variant="subtle">
-            <AlertIcon />
-            Here we can later add actions to generate work hours in
-            <code> WorkHoursInMonths </code> based on a 6-week plan and show
-            reports using <code>/api/reports/monthly-hours</code>.
-          </Alert>
         </Box>
       </VStack>
     </DashboardLayout>
