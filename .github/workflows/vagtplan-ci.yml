@@ -1,13 +1,11 @@
-name: Client CI
-
 on:
   push:
     paths:
-      - .
+      - "**"
       - ".github/workflows/vagtplan-ci.yml"
   pull_request:
     paths:
-      - .
+      - "**"
       - ".github/workflows/vagtplan-ci.yml"
   workflow_dispatch:
 
