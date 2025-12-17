@@ -29,7 +29,7 @@ Sentry.init({
   enableLogs: true
 });
 
-ctonst queryClient = new QueryClient({
+const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
